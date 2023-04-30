@@ -1,8 +1,7 @@
-package app.ryanm.rollinball
+package app.ryanm.rollingaway
 
 import android.app.Activity
 import android.os.Bundle
-import app.ryanm.rollinball.level.Level1
 
 class MainActivity : Activity() {
     private lateinit var game: Game
@@ -13,7 +12,7 @@ class MainActivity : Activity() {
         game = Game(this)
         setContentView(game)
 
-        val scene = Level1()
+        val scene = World(resources)
 
         game.init(scene)
     }

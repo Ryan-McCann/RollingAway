@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'app.ryanm.rollinball'
+    namespace 'app.ryanm.rollingaway'
     compileSdk 33
 
     defaultConfig {
-        applicationId "app.ryanm.rollinball"
+        applicationId "app.ryanm.rollingaway"
         minSdk 24
         targetSdk 33
         versionCode 1

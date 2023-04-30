@@ -1,4 +1,4 @@
-package app.ryanm.rollinball
+package app.ryanm.rollingaway
 
 import org.junit.Test
 

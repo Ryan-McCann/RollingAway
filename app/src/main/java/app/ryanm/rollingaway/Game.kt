@@ -1,8 +1,7 @@
-package app.ryanm.rollinball
+package app.ryanm.rollingaway
 
 import android.content.Context
 import android.content.Context.SENSOR_SERVICE
-import android.content.res.Configuration
 import android.graphics.Color
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -15,7 +14,7 @@ class Game(context: Context): SurfaceView(context), Runnable, SensorEventListene
     private var running = false
     private var paused = false
 
-    private val state = GameState(0f, 0f, 0f, 0f, 0f)
+    private val attribs = GameAttributes(0f, 0f, 0f, 0f, 0f, 0f)
 
     private lateinit var thread: Thread
     private lateinit var scene: Scene
@@ -28,17 +27,23 @@ class Game(context: Context): SurfaceView(context), Runnable, SensorEventListene
     }
 
     override fun run() {
-        state.screenWidth = context.resources.displayMetrics.widthPixels.toFloat()
-        state.screenHeight = context.resources.displayMetrics.heightPixels.toFloat()
+        attribs.screenWidth = context.resources.displayMetrics.widthPixels.toFloat()
+        attribs.screenHeight = context.resources.displayMetrics.heightPixels.toFloat()
+        attribs.screenDensity = context.resources.displayMetrics.density
 
         val sensorManager = context.getSystemService(SENSOR_SERVICE) as SensorManager
-        val rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        val rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
-        sensorManager.registerListener(this, rotationSensor, 100000)
+        sensorManager.registerListener(this, rotationSensor, 10000)
+
+        var lastTick: Long = System.currentTimeMillis()
+        var deltaT: Float
 
         while(running) {
             if(!paused) {
-                scene.update(state)
+                deltaT = (System.currentTimeMillis() - lastTick) / 1000f
+                lastTick = System.currentTimeMillis()
+                scene.update(deltaT, attribs)
 
                 val canvas = holder.lockCanvas()
                 if(canvas != null) {
@@ -68,22 +73,10 @@ class Game(context: Context): SurfaceView(context), Runnable, SensorEventListene
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        if(event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
-            val orientation = context.resources.configuration.orientation
-
-            SensorManager.getRotationMatrixFromVector( state.rotationMatrix, event.values)
-
-            if(orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                state.xRot = event.values[0]
-                state.yRot = event.values[1]
-            } else {
-                state.xRot = event.values[1]
-                state.yRot = -event.values[0]
-            }
-
-            Log.i("Orientation:", orientation.toString())
-
-            state.zRot = event.values[2]
+        if(event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            attribs.xRot = event.values[0]
+            attribs.yRot = event.values[1]
+            attribs.zRot = event.values[2]
         }
     }
 
