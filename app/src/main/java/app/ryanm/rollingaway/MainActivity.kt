@@ -2,6 +2,7 @@ package app.ryanm.rollingaway
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.View
 
 class MainActivity : Activity() {
     private lateinit var game: Game
@@ -19,6 +20,11 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        window.decorView.apply {
+            systemUiVisibility =
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
+        }
+
         game.resume()
     }
 

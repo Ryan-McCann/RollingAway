@@ -7,7 +7,7 @@
       android:pathData="M20,10A10,10 0,0 1,10 0l10,-0z"
       android:strokeLineJoin="bevel"
       android:strokeWidth="0"
-      android:fillColor="#ffffff"
-      android:strokeColor="#ffffff"
+      android:fillColor="#FF69B4"
+      android:strokeColor="#FF69B4"
       android:fillType="evenOdd"/>
 </vector>

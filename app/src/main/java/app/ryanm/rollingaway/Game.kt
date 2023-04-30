@@ -3,6 +3,7 @@ package app.ryanm.rollingaway
 import android.content.Context
 import android.content.Context.SENSOR_SERVICE
 import android.graphics.Color
+import android.graphics.Paint
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -39,6 +40,10 @@ class Game(context: Context): SurfaceView(context), Runnable, SensorEventListene
         var lastTick: Long = System.currentTimeMillis()
         var deltaT: Float
 
+        val textPaint = Paint()
+        textPaint.color = Color.RED
+        textPaint.textSize = 20F
+
         while(running) {
             if(!paused) {
                 deltaT = (System.currentTimeMillis() - lastTick) / 1000f
@@ -49,6 +54,8 @@ class Game(context: Context): SurfaceView(context), Runnable, SensorEventListene
                 if(canvas != null) {
                     canvas.drawColor(Color.BLACK)
                     scene.render(canvas)
+
+                    canvas.drawText((1f / deltaT).toString(),0f, attribs.screenHeight, textPaint)
 
                     holder.unlockCanvasAndPost(canvas)
                 }

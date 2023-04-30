@@ -2,14 +2,17 @@ package app.ryanm.rollingaway
 
 import android.content.res.Resources
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import androidx.core.content.res.ResourcesCompat
-import app.ryanm.rollingaway.character.Player
 import kotlin.math.abs
 
 class World(resources: Resources): Scene {
     private val mapWidth = 20
     private val mapHeight = 43
     private var tileSize: Int = resources.displayMetrics.widthPixels / mapWidth
+
+    private val textPaint = Paint()
 
     private val player = Player(tileSize.toFloat())
 
@@ -27,52 +30,62 @@ class World(resources: Resources): Scene {
     private val islandInnerBottomLeft = ResourcesCompat.getDrawable(resources, R.drawable.island_inner_bottom_left, null)
     private val islandInnerBottomRight = ResourcesCompat.getDrawable(resources, R.drawable.island_inner_bottom_right, null)
     private val islandSolid = ResourcesCompat.getDrawable(resources, R.drawable.island_solid, null)
+    private val ball = ResourcesCompat.getDrawable(resources, R.drawable.ball, null)
+    private val powerBall = ResourcesCompat.getDrawable(resources, R.drawable.power_ball, null)
 
     private val tilemap: Array<Int> = arrayOf(
          5,  1,  1,  1,  1,  1,  1,  1,  1, 14, 13,  1,  1,  1,  1,  1,  1,  1,  1,  6,
-         3,  0,  0,  0,  0,  0,  0,  0,  0,  4,  3,  0,  0,  0,  0,  0,  0,  0,  0,  4,
-         3,  0,  9,  2,  2,  2,  2, 10,  0,  4,  3,  0,  9,  2,  2,  2,  2, 10,  0,  4,
-         3,  0,  4, 13,  1,  1,  1, 12,  0, 11, 12,  0, 11,  1,  1,  1, 14,  3,  0,  4,
-         3,  0,  4,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  9,  2,  2,  2,  2,  2,  2,  2,  2, 10,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0, 11,  1,  1, 14, 17, 17, 13,  1,  1, 12,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  0,  0,  0,  4, 17, 17,  3,  0,  0,  0,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  9, 10,  0, 11,  1,  1, 12,  0,  9, 10,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  4,  3,  0,  9,  2,  2, 10,  0,  4,  3,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  4,  3,  0, 11,  1,  1, 12,  0,  4,  3,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  4,  3,  0,  9,  2,  2, 10,  0,  4,  3,  0,  4,  3,  0,  4,
-         3,  0, 11, 12,  0,  4,  3,  0, 11,  1,  1, 12,  0,  4,  3,  0, 11, 12,  0,  4,
-         3,  0,  0,  0,  0,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3,  0,  0,  0,  0,  4,
-         7,  2,  2, 10,  0,  4, 15,  2,  2,  2,  2,  2,  2, 16,  3,  0,  9,  2,  2,  8,
-         0,  0,  0,  3,  0,  4, 13,  1,  1,  1,  1,  1,  1, 14,  3,  0,  4,  0,  0,  0,
-         0,  0,  0,  3,  0,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3,  0,  4,  0,  0,  0,
-         0,  0,  0,  3,  0,  4,  3,  0,  9,  2,  2, 10,  0,  4,  3,  0,  4,  0,  0,  0,
-         1,  1,  1, 12,  0, 11, 12,  0,  4, 17, 17,  3,  0, 11, 12,  0, 11,  1,  1,  1, // Center
-         0,  0,  0,  0,  0,  0,  0,  0,  4, 17, 17,  3,  0,  0,  0,  0,  0,  0,  0,  0, // Center
-         2,  2,  2, 10,  0,  9, 10,  0,  4, 17, 17,  3,  0,  9, 10,  0,  9,  2,  2,  2, // Center
-         0,  0,  0,  3,  0,  4,  3,  0, 11,  1,  1, 12,  0,  4,  3,  0,  4,  0,  0,  0,
-         0,  0,  0,  3,  0,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3,  0,  4,  0,  0,  0,
-         0,  0,  0,  3,  0,  4, 15,  2,  2,  2,  2,  2,  2, 16,  3,  0,  4,  0,  0,  0,
-         5,  1,  1, 12,  0,  4, 13,  1,  1,  1,  1,  1,  1, 14,  3,  0, 11,  1,  1,  6,
-         3,  0,  0,  0,  0,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3,  0,  0,  0,  0,  4,
-         3,  0,  9, 10,  0,  4,  3,  0,  9,  2,  2, 10,  0,  4,  3,  0,  9, 10,  0,  4,
-         3,  0,  4,  3,  0,  4,  3,  0, 11,  1,  1, 12,  0,  4,  3,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  4,  3,  0,  9,  2,  2, 10,  0,  4,  3,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  4,  3,  0, 11,  1,  1, 12,  0,  4,  3,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0, 11, 12,  0,  9,  2,  2, 10,  0, 11, 12,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  0,  0,  0,  4, 17, 17,  3,  0,  0,  0,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  9,  2,  2, 16, 17, 17, 15,  2,  2, 10,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0, 11,  1,  1,  1,  1,  1,  1,  1,  1, 12,  0,  4,  3,  0,  4,
-         3,  0,  4,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4,  3,  0,  4,
-         3,  0,  4, 15,  2,  2,  2, 10,  0,  9, 10,  0,  9,  2,  2,  2, 16,  3,  0,  4,
-         3,  0, 11,  1,  1,  1,  1, 12,  0,  4,  3,  0, 11,  1,  1,  1,  1, 12,  0,  4,
-         3,  0,  0,  0,  0,  0,  0,  0,  0,  4,  3,  0,  0,  0,  0,  0,  0,  0,  0,  4,
+         3, 19, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 19,  4,
+         3, 18,  9,  2,  2,  2,  2, 10, 18,  4,  3, 18,  9,  2,  2,  2,  2, 10, 18,  4,
+         3, 18,  4, 13,  1,  1,  1, 12, 18, 11, 12, 18, 11,  1,  1,  1, 14,  3, 18,  4,
+         3, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  9,  2,  2,  2,  2,  2,  2,  2,  2, 10, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18, 11,  1,  1, 14, 17, 17, 13,  1,  1, 12, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18, 18, 18, 18,  4, 17, 17,  3, 18, 18, 18, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  9, 10, 18, 11,  1,  1, 12, 18,  9, 10, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  3, 18,  4,
+         3, 18, 11, 12, 18,  4,  3,  0, 11,  1,  1, 12,  0,  4,  3, 18, 11, 12, 18,  4,
+         3, 18, 18, 18, 18,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3, 18, 18, 18, 18,  4,
+         7,  2,  2, 10, 18,  4, 15,  2,  2,  2,  2,  2,  2, 16,  3, 18,  9,  2,  2,  8,
+         0,  0,  0,  3, 18,  4, 13,  1,  1,  1,  1,  1,  1, 14,  3, 18,  4,  0,  0,  0,
+         0,  0,  0,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  0,  0,  0,
+         0,  0,  0,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  0,  0,  0,
+         1,  1,  1, 12, 18, 11, 12, 18,  4, 17, 17,  3, 18, 11, 12, 18, 11,  1,  1,  1, // Center
+         0,  0,  0,  0, 18, 18, 18, 18,  4, 17, 17,  3, 18, 18, 18, 18,  0,  0,  0,  0, // Center
+         2,  2,  2, 10, 18,  9, 10, 18,  4, 17, 17,  3, 18,  9, 10, 18,  9,  2,  2,  2, // Center
+         0,  0,  0,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  0,  0,  0,
+         0,  0,  0,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  0,  0,  0,
+         0,  0,  0,  3, 18,  4, 15,  2,  2,  2,  2,  2,  2, 16,  3, 18,  4,  0,  0,  0,
+         5,  1,  1, 12, 18,  4, 13,  1,  1,  1,  1,  1,  1, 14,  3, 18, 11,  1,  1,  6,
+         3, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18,  4,
+         3, 18,  9, 10, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  9, 10, 18,  4,
+         3, 18,  4,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18, 11, 12, 18,  9,  2,  2, 10, 18, 11, 12, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18, 18, 18, 18,  4, 17, 17,  3, 18, 18, 18, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18,  9,  2,  2, 16, 17, 17, 15,  2,  2, 10, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18, 11,  1,  1,  1,  1,  1,  1,  1,  1, 12, 18,  4,  3, 18,  4,
+         3, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,
+         3, 18,  4, 15,  2,  2,  2, 10, 18,  9, 10, 18,  9,  2,  2,  2, 16,  3, 18,  4,
+         3, 18, 11,  1,  1,  1,  1, 12, 18,  4,  3, 18, 11,  1,  1,  1,  1, 12, 18,  4,
+         3, 19, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 19,  4,
          7,  2,  2,  2,  2,  2,  2,  2,  2, 16, 15,  2,  2,  2,  2,  2,  2,  2,  2,  8,
     )
+
+    init{
+        player.x = getTileX(308).toFloat()
+        player.y = getTileY(308).toFloat()
+
+        textPaint.color = Color.WHITE
+        textPaint.textSize = 36f
+    }
 
     private fun getTileX(tileIndex: Int): Int {
         return (tileIndex % mapWidth) * tileSize
@@ -84,6 +97,10 @@ class World(resources: Resources): Scene {
 
 
     override fun update(deltaT: Float, attribs: GameAttributes) {
+        /**
+         * Start of code to update player's movement based on which tile the player is currently on
+         * as well as which direction the user's phone is tilted.
+         */
         val deltaX = -attribs.xRot * player.speed * deltaT
         val deltaY =  attribs.yRot * player.speed * deltaT
 
@@ -101,22 +118,22 @@ class World(resources: Resources): Scene {
 
         if(tileIndex-1 < 0 || tileIndex % mapWidth == 0) // If no tile exists to the left of the current tile
             leftBlocked = false
-        else if(tilemap[tileIndex-1] == 0) // If the tile to the left is not blank
+        else if(tilemap[tileIndex-1] == 0 || tilemap[tileIndex-1] == 18 || tilemap[tileIndex-1] == 19) // If the tile to the left is not blank
             leftBlocked = false
 
         if(tileIndex+1 >= tilemap.size || tileIndex % mapWidth == mapWidth-1 ) // If no tile exists to the right
             rightBlocked = false
-        else if(tilemap[tileIndex+1] == 0)
+        else if(tilemap[tileIndex+1] == 0|| tilemap[tileIndex+1] == 18 || tilemap[tileIndex+1] == 19)
             rightBlocked = false
 
         if(tileIndex-mapWidth < 0) // If no tile exists above current tile
             upBlocked = false
-        else if(tilemap[tileIndex-mapWidth] == 0) // If tile above current tile is not blank
+        else if(tilemap[tileIndex-mapWidth] == 0 || tilemap[tileIndex-mapWidth] == 18 || tilemap[tileIndex-mapWidth] == 19) // If tile above current tile is not blank
             upBlocked = false
 
         if(tileIndex+mapWidth >= tilemap.size) // If no tile exists below current tile
             downBlocked = false
-        else if(tilemap[tileIndex+mapWidth] == 0) // If tile below is blank
+        else if(tilemap[tileIndex+mapWidth] == 0 || tilemap[tileIndex+mapWidth] == 18 || tilemap[tileIndex+mapWidth] == 19) // If tile below is blank
             downBlocked = false
 
         if(leftBlocked && deltaX < 0 && player.x + deltaX > getTileX(tileIndex)) // If prev tile is blocked but there's space to move on current tile
@@ -146,17 +163,41 @@ class World(resources: Resources): Scene {
         }
 
         if(abs(deltaX) > abs(deltaY)) { // If tilted more in x direction than y direction
-            if((!leftBlocked && deltaX < 0) || (!rightBlocked && deltaX > 0)) // If player can move left or right
+            if((!leftBlocked && deltaX < 0) || (!rightBlocked && deltaX > 0)) {// If player can move left or right
                 player.x += deltaX
+
+                if(deltaX > 0)
+                    player.direction = Direction.LEFT
+                else
+                    player.direction = Direction.RIGHT
+            }
             else
-                if((!upBlocked && deltaY < 0) || (!downBlocked && deltaY > 0)) // If player can move up or down
-                        player.y += deltaY
+                if((!upBlocked && deltaY < 0) || (!downBlocked && deltaY > 0)) {// If player can move up or down
+                    player.y += deltaY
+
+                    if(deltaY > 0)
+                        player.direction = Direction.DOWN
+                    else
+                        player.direction = Direction.UP
+                }
         } else { // If tilted more in y direction than x direction
-            if((!upBlocked && deltaY < 0) || (!downBlocked && deltaY > 0)) // If player can move up or down
+            if((!upBlocked && deltaY < 0) || (!downBlocked && deltaY > 0)) {// If player can move up or down
                 player.y += deltaY
+
+                if(deltaY > 0)
+                    player.direction = Direction.DOWN
+                else
+                    player.direction = Direction.UP
+            }
             else
-                if((!leftBlocked && deltaX < 0) || (!rightBlocked && deltaX > 0)) // If player can move left or right
+                if((!leftBlocked && deltaX < 0) || (!rightBlocked && deltaX > 0)) {// If player can move left or right
                     player.x += deltaX
+
+                    if(deltaX > 0)
+                        player.direction = Direction.LEFT
+                    else
+                        player.direction = Direction.RIGHT
+                }
         }
 
         if(abs(player.x-getTileX(tileIndex)) < abs(deltaX))
@@ -179,10 +220,18 @@ class World(resources: Resources): Scene {
         if(player.y < 0)
             player.y = mapHeight*tileSize.toFloat()
 
-        player.rect.left = player.x - player.radius
-        player.rect.right = player.x + player.radius
-        player.rect.top = player.y - player.radius
-        player.rect.bottom = player.y + player.radius
+        /**
+         * Code handling collision between player and pellets
+         */
+        if(tilemap[tileIndex] == 18) {
+            player.pellets += 1 // track how many pellets player has picked up
+            player.score += 200 // add 200 points for each pellet
+            tilemap[tileIndex] = 0
+        } else if(tilemap[tileIndex] == 19) {
+            player.pellets += 1 // track how many pellets player has picked up
+            player.score += 2000 // add 2000 points for power pellets
+            tilemap[tileIndex] = 0
+        }
     }
 
     override fun render(canvas: Canvas) {
@@ -271,9 +320,19 @@ class World(resources: Resources): Scene {
                     islandSolid?.setBounds(x, y, x+tileSize, y+tileSize)
                     islandSolid?.draw(canvas)
                 }
+                18 -> {
+                    ball?.setBounds(x, y, x+tileSize, y+tileSize)
+                    ball?.draw(canvas)
+                }
+                19 -> {
+                    powerBall?.setBounds(x, y, x+tileSize, y+tileSize)
+                    powerBall?.draw(canvas)
+                }
             }
         }
 
         player.render(canvas)
+
+        canvas.drawText("Score: "+player.score, 0f, mapHeight*tileSize + 36f, textPaint)
     }
 }
