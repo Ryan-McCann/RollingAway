@@ -40,10 +40,6 @@ class Game(context: Context): SurfaceView(context), Runnable, SensorEventListene
         var lastTick: Long = System.currentTimeMillis()
         var deltaT: Float
 
-        val textPaint = Paint()
-        textPaint.color = Color.RED
-        textPaint.textSize = 20F
-
         while(running) {
             if(!paused) {
                 deltaT = (System.currentTimeMillis() - lastTick) / 1000f
@@ -54,8 +50,6 @@ class Game(context: Context): SurfaceView(context), Runnable, SensorEventListene
                 if(canvas != null) {
                     canvas.drawColor(Color.BLACK)
                     scene.render(canvas)
-
-                    canvas.drawText((1f / deltaT).toString(),0f, attribs.screenHeight, textPaint)
 
                     holder.unlockCanvasAndPost(canvas)
                 }

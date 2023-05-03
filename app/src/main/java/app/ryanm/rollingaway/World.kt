@@ -4,8 +4,10 @@ import android.content.res.Resources
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.util.Log
 import androidx.core.content.res.ResourcesCompat
 import kotlin.math.abs
+import kotlin.math.round
 
 class World(resources: Resources): Scene {
     private val mapWidth = 20
@@ -15,6 +17,11 @@ class World(resources: Resources): Scene {
     private val textPaint = Paint()
 
     private val player = Player(tileSize.toFloat())
+
+    private val redEnemy = Enemy(tileSize.toFloat(), resources, R.drawable.red_enemy)
+    private val blueEnemy = Enemy(tileSize.toFloat(), resources, R.drawable.blue_enemy)
+    private val orangeEnemy = Enemy(tileSize.toFloat(), resources, R.drawable.orange_enemy)
+    private val pinkEnemy = Enemy(tileSize.toFloat(), resources, R.drawable.pink_enemy)
 
     private val straightWall = ResourcesCompat.getDrawable(resources, R.drawable.straight_wall, null)
     private val topLeftCorner = ResourcesCompat.getDrawable(resources, R.drawable.top_left_corner, null)
@@ -33,7 +40,7 @@ class World(resources: Resources): Scene {
     private val ball = ResourcesCompat.getDrawable(resources, R.drawable.ball, null)
     private val powerBall = ResourcesCompat.getDrawable(resources, R.drawable.power_ball, null)
 
-    private val tilemap: Array<Int> = arrayOf(
+    private val initmap: Array<Int> = arrayOf(
          5,  1,  1,  1,  1,  1,  1,  1,  1, 14, 13,  1,  1,  1,  1,  1,  1,  1,  1,  6,
          3, 19, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 19,  4,
          3, 18,  9,  2,  2,  2,  2, 10, 18,  4,  3, 18,  9,  2,  2,  2,  2, 10, 18,  4,
@@ -79,12 +86,32 @@ class World(resources: Resources): Scene {
          7,  2,  2,  2,  2,  2,  2,  2,  2, 16, 15,  2,  2,  2,  2,  2,  2,  2,  2,  8,
     )
 
+    private val tilemap: Array<Int> = initmap.clone()
+
     init{
         player.x = getTileX(308).toFloat()
         player.y = getTileY(308).toFloat()
 
+        redEnemy.x = getTileX(424).toFloat()
+        redEnemy.y = getTileY(424).toFloat()
+
+        blueEnemy.x = getTileX(423).toFloat()
+        blueEnemy.y = getTileY(423).toFloat()
+
+        orangeEnemy.x = getTileX(438).toFloat()
+        orangeEnemy.y = getTileY(438).toFloat()
+        orangeEnemy.direction = Direction.LEFT
+
+        pinkEnemy.x = getTileX(436).toFloat()
+        pinkEnemy.y = getTileY(436).toFloat()
+        pinkEnemy.direction = Direction.LEFT
+
         textPaint.color = Color.WHITE
         textPaint.textSize = 36f
+    }
+
+    private fun getTile(x: Int, y: Int): Int {
+        return y / tileSize * mapWidth + x / tileSize
     }
 
     private fun getTileX(tileIndex: Int): Int {
@@ -95,8 +122,7 @@ class World(resources: Resources): Scene {
         return (tileIndex / mapWidth) * tileSize
     }
 
-
-    override fun update(deltaT: Float, attribs: GameAttributes) {
+    private fun movePlayer(deltaT: Float, attribs: GameAttributes) {
         /**
          * Start of code to update player's movement based on which tile the player is currently on
          * as well as which direction the user's phone is tilted.
@@ -104,7 +130,7 @@ class World(resources: Resources): Scene {
         val deltaX = -attribs.xRot * player.speed * deltaT
         val deltaY =  attribs.yRot * player.speed * deltaT
 
-        var tileIndex: Int = player.y.toInt() / tileSize * mapWidth + player.x.toInt() / tileSize
+        var tileIndex: Int = getTile(player.x.toInt(), player.y.toInt())
 
         if(tileIndex < 0)
             tileIndex = 0
@@ -232,6 +258,214 @@ class World(resources: Resources): Scene {
             player.score += 2000 // add 2000 points for power pellets
             tilemap[tileIndex] = 0
         }
+
+        player.rect.left = player.x - player.radius
+        player.rect.top = player.y - player.radius
+        player.rect.right = player.x + player.radius
+        player.rect.bottom = player.y + player.radius
+    }
+
+    private fun moveEnemy(enemy: Enemy, target: Int, deltaT: Float) {
+        enemy.x = round(enemy.x)
+        enemy.y = round(enemy.y)
+
+        val tile = getTile(enemy.x.toInt(), enemy.y.toInt())
+
+        var changeDir = false
+
+        if(enemy.direction == Direction.RIGHT) {
+            if (enemy.x + enemy.speed * deltaT >= getTileX(tile)) {
+                changeDir = true
+            }
+            else {
+                enemy.x += enemy.speed * deltaT
+            }
+        }
+
+        if(enemy.direction == Direction.LEFT) {
+            if(enemy.x - enemy.speed * deltaT > getTileX(tile))
+                enemy.x -= enemy.speed * deltaT
+            else {
+                changeDir = true
+            }
+        }
+        if(enemy.direction == Direction.UP) {
+            if (enemy.y - enemy.speed * deltaT > getTileY(tile))
+                enemy.y -= enemy.speed * deltaT
+            else {
+                changeDir = true
+            }
+        }
+        if(enemy.direction == Direction.DOWN) {
+            if (enemy.y + enemy.speed * deltaT > getTileY(tile))
+                changeDir = true
+            else {
+                enemy.y += enemy.speed * deltaT
+            }
+        }
+
+        if(changeDir) {
+            Log.i("Change Dir:", "True")
+            val directions = getAvailableEnemyDirections(enemy.x.toInt(), enemy.y.toInt(), enemy.direction)
+
+            if(directions.isNotEmpty()) {
+                enemy.direction = directions[0]
+
+                when(enemy.direction) {
+                    Direction.UP -> Log.i("Current:", "Up")
+                    Direction.DOWN -> Log.i("Current:", "Down")
+                    Direction.LEFT -> Log.i("Current:", "Left")
+                    Direction.RIGHT -> Log.i("Current:", "Right")
+                }
+
+                when(enemy.direction) {
+                    Direction.UP -> {
+                        enemy.y -= enemy.speed * deltaT
+                    }
+                    Direction.DOWN -> {
+                        enemy.y += enemy.speed * deltaT
+                    }
+                    Direction.LEFT -> {
+                        enemy.x -= enemy.speed * deltaT
+                    }
+                    Direction.RIGHT -> {
+                        enemy.x += enemy.speed * deltaT
+                    }
+                }
+            }
+            else
+                Log.i("Directions:", "Is empty")
+        }
+
+        if(enemy.x > (mapWidth-1)*tileSize.toFloat()) {
+            enemy.x = 0f
+            enemy.y = getTileY((mapHeight/2)*mapWidth).toFloat()
+        }
+        else if(enemy.x < 0) {
+            enemy.x = (mapWidth-1)*tileSize.toFloat()
+            enemy.y = getTileY((mapHeight / 2)*mapWidth).toFloat()
+        }
+
+        // Collision rects
+        enemy.rect.left = enemy.x - enemy.radius
+        enemy.rect.top = enemy.y - enemy.radius
+        enemy.rect.right = enemy.rect.left + 2*enemy.radius
+        enemy.rect.bottom = enemy.rect.top + 2*enemy.radius
+    }
+
+    private fun getAvailableEnemyDirections(x: Int, y: Int, direction: Direction): ArrayList<Direction> {
+        val tile = getTile(x, y)
+        val directionList = ArrayList<Direction>()
+
+        if(tile-1 <= 0 || (tile-1) % mapWidth <= 0) {
+            if(direction != Direction.RIGHT)
+                directionList.add(Direction.LEFT)
+        }
+
+        if(tile-1 > 0 && (tile-1) % mapWidth > 0) {
+            if(tilemap[tile-1] == 0 || tilemap[tile-1] == 18 || tilemap[tile-1] == 19)
+                if(direction != Direction.RIGHT)
+                    directionList.add(Direction.LEFT)
+        }
+
+        if(tile+1 < tilemap.size && (tile+1) % mapWidth < mapWidth)
+            if(tilemap[tile+1] == 0 || tilemap[tile+1] == 18 || tilemap[tile+1] == 19)
+                if(direction != Direction.LEFT)
+                    directionList.add(Direction.RIGHT)
+
+        if(tile+1 >= tilemap.size || (tile+1) % mapWidth == 0)
+            if(direction != Direction.LEFT)
+                directionList.add(Direction.RIGHT)
+
+        if(tile-mapWidth > 0)
+            if(tilemap[tile-mapWidth] == 0 || tilemap[tile-mapWidth] == 18 || tilemap[tile-mapWidth] == 19)
+                if(direction != Direction.DOWN)
+                    directionList.add(Direction.UP)
+
+        if(tile+mapWidth < tilemap.size)
+            if(tilemap[tile+mapWidth] == 0 || tilemap[tile+mapWidth] == 18 || tilemap[tile+mapWidth] == 19)
+                if(direction != Direction.UP)
+                    directionList.add(Direction.DOWN)
+
+        return directionList
+    }
+
+    private fun moveEnemies(deltaT: Float, attribs: GameAttributes) {
+        /**
+         * Code handling behavior of enemies
+         */
+
+        val redTargetTile: Int =  when(redEnemy.state) {
+            EnemyState.PURSUIT -> getTile(player.x.toInt(), player.y.toInt()) // move towards player
+            EnemyState.SCATTER -> mapWidth // move towards top right corner
+            EnemyState.FRIGHTENED -> (tilemap.indices).random() // move in random directions
+        }
+
+        val blueTargetTile: Int = when(blueEnemy.state) {
+            EnemyState.PURSUIT -> getTile(player.x.toInt(), player.y.toInt())
+            EnemyState.SCATTER -> mapWidth
+            EnemyState.FRIGHTENED -> (tilemap.indices).random()
+        }
+
+        val pinkTargetTile: Int = when(pinkEnemy.state) {
+            EnemyState.PURSUIT -> getTile(player.x.toInt(), player.y.toInt())
+            EnemyState.SCATTER -> mapWidth
+            EnemyState.FRIGHTENED -> (tilemap.indices).random()
+        }
+
+        val orangeTargetTile: Int = when(orangeEnemy.state) {
+            EnemyState.PURSUIT -> getTile(player.x.toInt(), player.y.toInt())
+            EnemyState.SCATTER -> mapWidth
+            EnemyState.FRIGHTENED -> (tilemap.indices).random()
+        }
+
+        moveEnemy(redEnemy, redTargetTile, deltaT)
+        //moveEnemy(blueEnemy, blueTargetTile, deltaT)
+        //moveEnemy(pinkEnemy, pinkTargetTile, deltaT)
+        //moveEnemy(orangeEnemy, orangeTargetTile, deltaT)
+
+        if(player.rect.intersects(redEnemy.rect.left, redEnemy.rect.top, redEnemy.rect.right, redEnemy.rect.bottom) ||
+            player.rect.intersects(blueEnemy.rect.left, blueEnemy.rect.top, blueEnemy.rect.right, blueEnemy.rect.bottom) ||
+            player.rect.intersects(pinkEnemy.rect.left, pinkEnemy.rect.top, pinkEnemy.rect.right, pinkEnemy.rect.bottom) ||
+            player.rect.intersects(orangeEnemy.rect.left, orangeEnemy.rect.top, orangeEnemy.rect.right, orangeEnemy.rect.bottom)) {
+            player.lives--
+
+            player.state = PlayerState.DYING
+
+            if(player.lives < 0) {
+                player.state = PlayerState.GAMEOVER
+            }
+        }
+    }
+
+    override fun update(deltaT: Float, attribs: GameAttributes) {
+        when(player.state) {
+            PlayerState.ALIVE -> {
+                movePlayer(deltaT, attribs)
+                moveEnemies(deltaT, attribs)
+            }
+            PlayerState.DYING -> {
+                player.x = getTileX(308).toFloat()
+                player.y = getTileY(308).toFloat()
+
+                redEnemy.x = getTileX(421).toFloat()
+                redEnemy.y = getTileY(421).toFloat()
+
+                blueEnemy.x = getTileX(423).toFloat()
+                blueEnemy.y = getTileY(423).toFloat()
+
+                orangeEnemy.x = getTileX(438).toFloat()
+                orangeEnemy.y = getTileY(438).toFloat()
+
+                pinkEnemy.x = getTileX(436).toFloat()
+                pinkEnemy.y = getTileY(436).toFloat()
+
+                player.state = PlayerState.ALIVE
+            }
+            PlayerState.GAMEOVER -> {
+
+            }
+        }
     }
 
     override fun render(canvas: Canvas) {
@@ -333,6 +567,14 @@ class World(resources: Resources): Scene {
 
         player.render(canvas)
 
+        redEnemy.render(canvas)
+        orangeEnemy.render(canvas)
+        blueEnemy.render(canvas)
+        pinkEnemy.render(canvas)
+
         canvas.drawText("Score: "+player.score, 0f, mapHeight*tileSize + 36f, textPaint)
+
+        canvas.drawText("X: "+redEnemy.x+" Y: "+redEnemy.y,
+            300F, mapHeight*tileSize + 36f, textPaint)
     }
 }

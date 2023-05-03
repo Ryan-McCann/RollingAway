@@ -2,8 +2,8 @@ package app.ryanm.rollingaway
 
 import android.graphics.*
 
-enum class Direction {
-    UP, DOWN, LEFT, RIGHT
+enum class PlayerState {
+    ALIVE, DYING, GAMEOVER
 }
 class Player(var radius: Float) {
     var x = 500f
@@ -12,8 +12,12 @@ class Player(var radius: Float) {
 
     var score: Int = 0
     var pellets: Int = 0
+    var lives: Int = 3
+    var state: PlayerState = PlayerState.ALIVE
 
     var direction: Direction = Direction.UP
+
+    var rect = RectF()
 
     fun render(canvas: Canvas) {
         val paint = Paint()
