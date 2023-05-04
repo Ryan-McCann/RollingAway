@@ -40,86 +40,74 @@ class World(resources: Resources): Scene {
     private val ball = ResourcesCompat.getDrawable(resources, R.drawable.ball, null)
     private val powerBall = ResourcesCompat.getDrawable(resources, R.drawable.power_ball, null)
 
-    private val initmap: Array<Int> = arrayOf(
-         5,  1,  1,  1,  1,  1,  1,  1,  1, 14, 13,  1,  1,  1,  1,  1,  1,  1,  1,  6,
-         3, 19, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 19,  4,
-         3, 18,  9,  2,  2,  2,  2, 10, 18,  4,  3, 18,  9,  2,  2,  2,  2, 10, 18,  4,
-         3, 18,  4, 13,  1,  1,  1, 12, 18, 11, 12, 18, 11,  1,  1,  1, 14,  3, 18,  4,
-         3, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  9,  2,  2,  2,  2,  2,  2,  2,  2, 10, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18, 11,  1,  1, 14, 17, 17, 13,  1,  1, 12, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18, 18, 18, 18,  4, 17, 17,  3, 18, 18, 18, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  9, 10, 18, 11,  1,  1, 12, 18,  9, 10, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  3, 18,  4,
-         3, 18, 11, 12, 18,  4,  3,  0, 11,  1,  1, 12,  0,  4,  3, 18, 11, 12, 18,  4,
-         3, 18, 18, 18, 18,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3, 18, 18, 18, 18,  4,
-         7,  2,  2, 10, 18,  4, 15,  2,  2,  2,  2,  2,  2, 16,  3, 18,  9,  2,  2,  8,
-         0,  0,  0,  3, 18,  4, 13,  1,  1,  1,  1,  1,  1, 14,  3, 18,  4,  0,  0,  0,
-         0,  0,  0,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  0,  0,  0,
-         0,  0,  0,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  0,  0,  0,
-         1,  1,  1, 12, 18, 11, 12, 18,  4, 17, 17,  3, 18, 11, 12, 18, 11,  1,  1,  1, // Center
-         0,  0,  0,  0, 18, 18, 18, 18,  4, 17, 17,  3, 18, 18, 18, 18,  0,  0,  0,  0, // Center
-         2,  2,  2, 10, 18,  9, 10, 18,  4, 17, 17,  3, 18,  9, 10, 18,  9,  2,  2,  2, // Center
-         0,  0,  0,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  0,  0,  0,
-         0,  0,  0,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  0,  0,  0,
-         0,  0,  0,  3, 18,  4, 15,  2,  2,  2,  2,  2,  2, 16,  3, 18,  4,  0,  0,  0,
-         5,  1,  1, 12, 18,  4, 13,  1,  1,  1,  1,  1,  1, 14,  3, 18, 11,  1,  1,  6,
-         3, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18,  4,
-         3, 18,  9, 10, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  9, 10, 18,  4,
-         3, 18,  4,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18, 11, 12, 18,  9,  2,  2, 10, 18, 11, 12, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18, 18, 18, 18,  4, 17, 17,  3, 18, 18, 18, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18,  9,  2,  2, 16, 17, 17, 15,  2,  2, 10, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18, 11,  1,  1,  1,  1,  1,  1,  1,  1, 12, 18,  4,  3, 18,  4,
-         3, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,
-         3, 18,  4, 15,  2,  2,  2, 10, 18,  9, 10, 18,  9,  2,  2,  2, 16,  3, 18,  4,
-         3, 18, 11,  1,  1,  1,  1, 12, 18,  4,  3, 18, 11,  1,  1,  1,  1, 12, 18,  4,
-         3, 19, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 19,  4,
-         7,  2,  2,  2,  2,  2,  2,  2,  2, 16, 15,  2,  2,  2,  2,  2,  2,  2,  2,  8,
+    private val initmap = arrayOf(
+        intArrayOf(5,  1,  1,  1,  1,  1,  1,  1,  1, 14, 13,  1,  1,  1,  1,  1,  1,  1,  1,  6),
+        intArrayOf(3, 19, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 19,  4),
+        intArrayOf(3, 18,  9,  2,  2,  2,  2, 10, 18,  4,  3, 18,  9,  2,  2,  2,  2, 10, 18,  4),
+        intArrayOf(3, 18,  4, 13,  1,  1,  1, 12, 18, 11, 12, 18, 11,  1,  1,  1, 14,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  9,  2,  2,  2,  2,  2,  2,  2,  2, 10, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18, 11,  1,  1, 14, 17, 17, 13,  1,  1, 12, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18, 18, 18, 18,  4, 17, 17,  3, 18, 18, 18, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  9, 10, 18, 11,  1,  1, 12, 18,  9, 10, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18, 11, 12, 18,  4,  3,  0, 11,  1,  1, 12,  0,  4,  3, 18, 11, 12, 18,  4),
+        intArrayOf(3, 18, 18, 18, 18,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3, 18, 18, 18, 18,  4),
+        intArrayOf(7,  2,  2, 10, 18,  4, 15,  2,  2,  2,  2,  2,  2, 16,  3, 18,  9,  2,  2,  8),
+        intArrayOf(0,  0,  0,  3, 18,  4, 13,  1,  1,  1,  1,  1,  1, 14,  3, 18,  4,  0,  0,  0),
+        intArrayOf(0,  0,  0,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  0,  0,  0),
+        intArrayOf(0,  0,  0,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  0,  0,  0),
+        intArrayOf(1,  1,  1, 12, 18, 11, 12, 18,  4, 17, 17,  3, 18, 11, 12, 18, 11,  1,  1,  1), // Center
+        intArrayOf(0,  0,  0,  0, 18, 18, 18, 18,  4, 17, 17,  3, 18, 18, 18, 18,  0,  0,  0,  0),
+        intArrayOf(2,  2,  2, 10, 18,  9, 10, 18,  4, 17, 17,  3, 18,  9, 10, 18,  9,  2,  2,  2),
+        intArrayOf(0,  0,  0,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  0,  0,  0),
+        intArrayOf(0,  0,  0,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  0,  0,  0),
+        intArrayOf(0,  0,  0,  3, 18,  4, 15,  2,  2,  2,  2,  2,  2, 16,  3, 18,  4,  0,  0,  0),
+        intArrayOf(5,  1,  1, 12, 18,  4, 13,  1,  1,  1,  1,  1,  1, 14,  3, 18, 11,  1,  1,  6),
+        intArrayOf(3, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18,  4),
+        intArrayOf(3, 18,  9, 10, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  9, 10, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18, 11, 12, 18,  9,  2,  2, 10, 18, 11, 12, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18, 18, 18, 18,  4, 17, 17,  3, 18, 18, 18, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18,  9,  2,  2, 16, 17, 17, 15,  2,  2, 10, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18, 11,  1,  1,  1,  1,  1,  1,  1,  1, 12, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4),
+        intArrayOf(3, 18,  4, 15,  2,  2,  2, 10, 18,  9, 10, 18,  9,  2,  2,  2, 16,  3, 18,  4),
+        intArrayOf(3, 18, 11,  1,  1,  1,  1, 12, 18,  4,  3, 18, 11,  1,  1,  1,  1, 12, 18,  4),
+        intArrayOf(3, 19, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 19,  4),
+        intArrayOf(7,  2,  2,  2,  2,  2,  2,  2,  2, 16, 15,  2,  2,  2,  2,  2,  2,  2,  2,  8),
     )
 
-    private val tilemap: Array<Int> = initmap.clone()
+    private val tilemap: Array<IntArray> = initmap.clone()
 
     init{
-        player.x = getTileX(308).toFloat()
-        player.y = getTileY(308).toFloat()
+        player.x = 8*tileSize.toFloat()
+        player.y = 15*tileSize.toFloat()
 
-        redEnemy.x = getTileX(424).toFloat()
-        redEnemy.y = getTileY(424).toFloat()
+        redEnemy.x = 4*tileSize.toFloat()
+        redEnemy.y = 21*tileSize.toFloat()
 
-        blueEnemy.x = getTileX(423).toFloat()
-        blueEnemy.y = getTileY(423).toFloat()
+        blueEnemy.x = 3*tileSize.toFloat()
+        blueEnemy.y = 21*tileSize.toFloat()
 
-        orangeEnemy.x = getTileX(438).toFloat()
-        orangeEnemy.y = getTileY(438).toFloat()
+        orangeEnemy.x = 18*tileSize.toFloat()
+        orangeEnemy.y = 21*tileSize.toFloat()
         orangeEnemy.direction = Direction.LEFT
 
-        pinkEnemy.x = getTileX(436).toFloat()
-        pinkEnemy.y = getTileY(436).toFloat()
+        pinkEnemy.x = 16*tileSize.toFloat()
+        pinkEnemy.y = 21*tileSize.toFloat()
         pinkEnemy.direction = Direction.LEFT
 
         textPaint.color = Color.WHITE
         textPaint.textSize = 36f
-    }
-
-    private fun getTile(x: Int, y: Int): Int {
-        return y / tileSize * mapWidth + x / tileSize
-    }
-
-    private fun getTileX(tileIndex: Int): Int {
-        return (tileIndex % mapWidth) * tileSize
-    }
-
-    private fun getTileY(tileIndex: Int): Int {
-        return (tileIndex / mapWidth) * tileSize
     }
 
     private fun movePlayer(deltaT: Float, attribs: GameAttributes) {
@@ -130,58 +118,54 @@ class World(resources: Resources): Scene {
         val deltaX = -attribs.xRot * player.speed * deltaT
         val deltaY =  attribs.yRot * player.speed * deltaT
 
-        var tileIndex: Int = getTile(player.x.toInt(), player.y.toInt())
-
-        if(tileIndex < 0)
-            tileIndex = 0
-        else if(tileIndex >= tilemap.size)
-            tileIndex = tilemap.size - 1
-
         var leftBlocked = true
         var rightBlocked = true
         var upBlocked = true
         var downBlocked = true
 
-        if(tileIndex-1 < 0 || tileIndex % mapWidth == 0) // If no tile exists to the left of the current tile
+        val tileX = player.x.toInt() / tileSize
+        val tileY = player.y.toInt() / tileSize
+
+        if(tileX-1 < 0) // If no tile exists to the left of the current tile
             leftBlocked = false
-        else if(tilemap[tileIndex-1] == 0 || tilemap[tileIndex-1] == 18 || tilemap[tileIndex-1] == 19) // If the tile to the left is not blank
-            leftBlocked = false
-
-        if(tileIndex+1 >= tilemap.size || tileIndex % mapWidth == mapWidth-1 ) // If no tile exists to the right
-            rightBlocked = false
-        else if(tilemap[tileIndex+1] == 0|| tilemap[tileIndex+1] == 18 || tilemap[tileIndex+1] == 19)
-            rightBlocked = false
-
-        if(tileIndex-mapWidth < 0) // If no tile exists above current tile
-            upBlocked = false
-        else if(tilemap[tileIndex-mapWidth] == 0 || tilemap[tileIndex-mapWidth] == 18 || tilemap[tileIndex-mapWidth] == 19) // If tile above current tile is not blank
-            upBlocked = false
-
-        if(tileIndex+mapWidth >= tilemap.size) // If no tile exists below current tile
-            downBlocked = false
-        else if(tilemap[tileIndex+mapWidth] == 0 || tilemap[tileIndex+mapWidth] == 18 || tilemap[tileIndex+mapWidth] == 19) // If tile below is blank
-            downBlocked = false
-
-        if(leftBlocked && deltaX < 0 && player.x + deltaX > getTileX(tileIndex)) // If prev tile is blocked but there's space to move on current tile
+        else if(tilemap[tileY][tileX-1] == 0 || tilemap[tileY][tileX-1] == 18 || tilemap[tileY][tileX-1] == 19) // If the tile to the left is blank
             leftBlocked = false
 
-        if(rightBlocked && deltaX > 0 && player.x + deltaX < getTileX(tileIndex)) // If next tile is blocked but there's space to move on current tile
+        if(tileX+1 >= mapWidth) // If no tile exists to the right
+            rightBlocked = false
+        else if(tilemap[tileY][tileX+1] == 0|| tilemap[tileY][tileX+1] == 18 || tilemap[tileY][tileX+1] == 19)
             rightBlocked = false
 
-        if(upBlocked && deltaY < 0 && player.y + deltaY > getTileY(tileIndex)) // If prev tile is blocked but there's space to move on current tile
+        if(tileY-1 < 0) // If no tile exists above current tile
+            upBlocked = false
+        else if(tilemap[tileY-1][tileX] == 0 || tilemap[tileY-1][tileX] == 18 || tilemap[tileY-1][tileX] == 19) // If tile above current tile is not blank
             upBlocked = false
 
-        if(downBlocked && deltaY > 0 && player.y + deltaY < getTileY(tileIndex)) // If next tile is blocked but there's space to move on current tile
+        if(tileY+1 >= tilemap.size) // If no tile exists below current tile
+            downBlocked = false
+        else if(tilemap[tileY+1][tileX] == 0 || tilemap[tileY+1][tileX] == 18 || tilemap[tileY+1][tileX] == 19) // If tile below is blank
             downBlocked = false
 
-        if((!downBlocked || !upBlocked) && (abs(player.x-getTileX(tileIndex)) > abs(deltaX))) {// If up or down movement isn't blocked but player isn't centered on tile
+        if(leftBlocked && deltaX < 0 && player.x + deltaX > tileX * tileSize) // If prev tile is blocked but there's space to move on current tile
+            leftBlocked = false
+
+        if(rightBlocked && deltaX > 0 && player.x + deltaX < tileX * tileSize) // If next tile is blocked but there's space to move on current tile
+            rightBlocked = false
+
+        if(upBlocked && deltaY < 0 && player.y + deltaY > tileY * tileSize) // If prev tile is blocked but there's space to move on current tile
+            upBlocked = false
+
+        if(downBlocked && deltaY > 0 && player.y + deltaY < tileY * tileSize) // If next tile is blocked but there's space to move on current tile
+            downBlocked = false
+
+        if((!downBlocked || !upBlocked) && (abs(player.x-tileX*tileSize) > abs(deltaX))) {// If up or down movement isn't blocked but player isn't centered on tile
             if (!downBlocked)
                 downBlocked = true
             if (!upBlocked)
                 upBlocked = true
         }
 
-        if((!leftBlocked || !rightBlocked) && (abs(player.y-getTileY(tileIndex)) > abs(deltaY))) {// If left or right movement isn't blocked but player isn't centered on tile
+        if((!leftBlocked || !rightBlocked) && (abs(player.y-tileY*tileSize) > abs(deltaY))) {// If left or right movement isn't blocked but player isn't centered on tile
             if (!leftBlocked)
                 leftBlocked = true
             if (!rightBlocked)
@@ -226,19 +210,19 @@ class World(resources: Resources): Scene {
                 }
         }
 
-        if(abs(player.x-getTileX(tileIndex)) < abs(deltaX))
-            player.x = getTileX(tileIndex).toFloat()
+        if(abs(player.x-tileX*tileSize) < abs(deltaX))
+            player.x = tileX*tileSize.toFloat()
 
-        if(abs(player.y-getTileY(tileIndex)) < abs(deltaY))
-            player.y = getTileY(tileIndex).toFloat()
+        if(abs(player.y-tileY*tileSize) < abs(deltaY))
+            player.y = tileY*tileSize.toFloat()
 
         if(player.x > (mapWidth-1)*tileSize.toFloat()) {
             player.x = 0f
-            player.y = getTileY((mapHeight/2)*mapWidth).toFloat()
+            player.y = (mapHeight/2 * tileSize).toFloat()
         }
         else if(player.x < 0) {
             player.x = (mapWidth-1)*tileSize.toFloat()
-            player.y = getTileY((mapHeight / 2)*mapWidth).toFloat()
+            player.y = (mapHeight / 2*tileSize).toFloat()
         }
 
         if(player.y > mapHeight*tileSize.toFloat())
@@ -249,14 +233,14 @@ class World(resources: Resources): Scene {
         /**
          * Code handling collision between player and pellets
          */
-        if(tilemap[tileIndex] == 18) {
+        if(tilemap[tileY][tileX] == 18) {
             player.pellets += 1 // track how many pellets player has picked up
             player.score += 200 // add 200 points for each pellet
-            tilemap[tileIndex] = 0
-        } else if(tilemap[tileIndex] == 19) {
+            tilemap[tileY][tileX] = 0
+        } else if(tilemap[tileY][tileX] == 19) {
             player.pellets += 1 // track how many pellets player has picked up
             player.score += 2000 // add 2000 points for power pellets
-            tilemap[tileIndex] = 0
+            tilemap[tileY][tileX] = 0
         }
 
         player.rect.left = player.x - player.radius
@@ -265,16 +249,17 @@ class World(resources: Resources): Scene {
         player.rect.bottom = player.y + player.radius
     }
 
-    private fun moveEnemy(enemy: Enemy, target: Int, deltaT: Float) {
+    private fun moveEnemy(enemy: Enemy, targetX: Int, targetY: Int, deltaT: Float) {
         enemy.x = round(enemy.x)
         enemy.y = round(enemy.y)
 
-        val tile = getTile(enemy.x.toInt(), enemy.y.toInt())
+        val tileX: Int = enemy.x.toInt() * tileSize
+        val tileY: Int = enemy.y.toInt() * tileSize
 
         var changeDir = false
 
         if(enemy.direction == Direction.RIGHT) {
-            if (enemy.x + enemy.speed * deltaT >= getTileX(tile)) {
+            if (enemy.x + enemy.speed * deltaT >= tileX*tileSize) {
                 changeDir = true
             }
             else {
@@ -283,21 +268,21 @@ class World(resources: Resources): Scene {
         }
 
         if(enemy.direction == Direction.LEFT) {
-            if(enemy.x - enemy.speed * deltaT > getTileX(tile))
+            if(enemy.x - enemy.speed * deltaT > tileX*tileSize)
                 enemy.x -= enemy.speed * deltaT
             else {
                 changeDir = true
             }
         }
         if(enemy.direction == Direction.UP) {
-            if (enemy.y - enemy.speed * deltaT > getTileY(tile))
+            if (enemy.y - enemy.speed * deltaT > tileY*tileSize)
                 enemy.y -= enemy.speed * deltaT
             else {
                 changeDir = true
             }
         }
         if(enemy.direction == Direction.DOWN) {
-            if (enemy.y + enemy.speed * deltaT > getTileY(tile))
+            if (enemy.y + enemy.speed * deltaT > tileY*tileSize)
                 changeDir = true
             else {
                 enemy.y += enemy.speed * deltaT
@@ -339,11 +324,11 @@ class World(resources: Resources): Scene {
 
         if(enemy.x > (mapWidth-1)*tileSize.toFloat()) {
             enemy.x = 0f
-            enemy.y = getTileY((mapHeight/2)*mapWidth).toFloat()
+            enemy.y = (mapHeight/2)*tileSize.toFloat()
         }
         else if(enemy.x < 0) {
             enemy.x = (mapWidth-1)*tileSize.toFloat()
-            enemy.y = getTileY((mapHeight / 2)*mapWidth).toFloat()
+            enemy.y = ((mapHeight/2)*tileSize).toFloat()
         }
 
         // Collision rects
@@ -354,36 +339,37 @@ class World(resources: Resources): Scene {
     }
 
     private fun getAvailableEnemyDirections(x: Int, y: Int, direction: Direction): ArrayList<Direction> {
-        val tile = getTile(x, y)
+        val tileX = x / tileSize
+        val tileY = y / tileSize
         val directionList = ArrayList<Direction>()
 
-        if(tile-1 <= 0 || (tile-1) % mapWidth <= 0) {
+        if(tileX-1 <= 0) {
             if(direction != Direction.RIGHT)
                 directionList.add(Direction.LEFT)
         }
 
-        if(tile-1 > 0 && (tile-1) % mapWidth > 0) {
-            if(tilemap[tile-1] == 0 || tilemap[tile-1] == 18 || tilemap[tile-1] == 19)
+        if(tileX-1 > 0) {
+            if(tilemap[tileY][tileX-1] == 0 || tilemap[tileY][tileX-1] == 18 || tilemap[tileX][tileY-1] == 19)
                 if(direction != Direction.RIGHT)
                     directionList.add(Direction.LEFT)
         }
 
-        if(tile+1 < tilemap.size && (tile+1) % mapWidth < mapWidth)
-            if(tilemap[tile+1] == 0 || tilemap[tile+1] == 18 || tilemap[tile+1] == 19)
+        if(tileX+1 < mapWidth)
+            if(tilemap[tileY][tileX+1] == 0 || tilemap[tileY][tileX+1] == 18 || tilemap[tileY][tileX+1] == 19)
                 if(direction != Direction.LEFT)
                     directionList.add(Direction.RIGHT)
 
-        if(tile+1 >= tilemap.size || (tile+1) % mapWidth == 0)
+        if(tileX+1 >= mapWidth)
             if(direction != Direction.LEFT)
                 directionList.add(Direction.RIGHT)
 
-        if(tile-mapWidth > 0)
-            if(tilemap[tile-mapWidth] == 0 || tilemap[tile-mapWidth] == 18 || tilemap[tile-mapWidth] == 19)
+        if(tileY-1 > 0)
+            if(tilemap[tileY-1][tileX] == 0 || tilemap[tileY-1][tileX] == 18 || tilemap[tileY-1][tileX] == 19)
                 if(direction != Direction.DOWN)
                     directionList.add(Direction.UP)
 
-        if(tile+mapWidth < tilemap.size)
-            if(tilemap[tile+mapWidth] == 0 || tilemap[tile+mapWidth] == 18 || tilemap[tile+mapWidth] == 19)
+        if(tileY+1 < tilemap.size)
+            if(tilemap[tileY+1][tileX] == 0 || tilemap[tileY+1][tileX] == 18 || tilemap[tileY+1][tileX] == 19)
                 if(direction != Direction.UP)
                     directionList.add(Direction.DOWN)
 
@@ -395,31 +381,51 @@ class World(resources: Resources): Scene {
          * Code handling behavior of enemies
          */
 
-        val redTargetTile: Int =  when(redEnemy.state) {
-            EnemyState.PURSUIT -> getTile(player.x.toInt(), player.y.toInt()) // move towards player
-            EnemyState.SCATTER -> mapWidth // move towards top right corner
-            EnemyState.FRIGHTENED -> (tilemap.indices).random() // move in random directions
+        val redTargetX: Int; val redTargetY: Int
+        when(redEnemy.state) {
+            EnemyState.PURSUIT -> { // move towards player
+                redTargetX = player.x.toInt()/tileSize
+                redTargetY = player.y.toInt()/tileSize
+            }
+            EnemyState.SCATTER -> { // move towards top right corner
+                redTargetX = mapWidth
+                redTargetY = 0
+            }
+            EnemyState.FRIGHTENED -> {  // move in random directions
+                redTargetX = (0 until mapWidth).random()
+                redTargetY = (tilemap.indices).random()
+            }
         }
 
-        val blueTargetTile: Int = when(blueEnemy.state) {
-            EnemyState.PURSUIT -> getTile(player.x.toInt(), player.y.toInt())
-            EnemyState.SCATTER -> mapWidth
-            EnemyState.FRIGHTENED -> (tilemap.indices).random()
+        val blueTargetX: Int; val blueTargetY: Int
+        when(blueEnemy.state) { // move towards player
+            EnemyState.PURSUIT -> {
+                blueTargetX = player.x.toInt()/tileSize
+                blueTargetY = player.y.toInt()/tileSize
+            }
+            EnemyState.SCATTER -> { // move towards top right corner
+                blueTargetY = 0
+                blueTargetX = mapWidth
+            }
+            EnemyState.FRIGHTENED -> { // move in random directions
+                blueTargetX = (0 until mapWidth).random()
+                blueTargetY = (tilemap.indices).random()
+            }
         }
 
-        val pinkTargetTile: Int = when(pinkEnemy.state) {
-            EnemyState.PURSUIT -> getTile(player.x.toInt(), player.y.toInt())
-            EnemyState.SCATTER -> mapWidth
-            EnemyState.FRIGHTENED -> (tilemap.indices).random()
+        val pinkTargetX: Int; val pinkTargetY: Int = when(pinkEnemy.state) {
+            EnemyState.PURSUIT -> { player.x.toInt()/tileSize; player.y.toInt()/tileSize }// move towards player
+            EnemyState.SCATTER -> { 0; mapWidth }// move towards top right corner
+            EnemyState.FRIGHTENED -> { (0 until mapWidth).random(); (tilemap.indices).random() } // move in random directions
         }
 
-        val orangeTargetTile: Int = when(orangeEnemy.state) {
-            EnemyState.PURSUIT -> getTile(player.x.toInt(), player.y.toInt())
-            EnemyState.SCATTER -> mapWidth
-            EnemyState.FRIGHTENED -> (tilemap.indices).random()
+        val orangeTargetX: Int; val orangeTargetY: Int = when(orangeEnemy.state) {
+            EnemyState.PURSUIT -> { player.x.toInt()/tileSize; player.y.toInt()/tileSize }// move towards player
+            EnemyState.SCATTER -> { 0; mapWidth }// move towards top right corner
+            EnemyState.FRIGHTENED -> { (0 until mapWidth).random(); (tilemap.indices).random() } // move in random directions
         }
 
-        moveEnemy(redEnemy, redTargetTile, deltaT)
+        moveEnemy(redEnemy, redTargetX, redTargetY, deltaT)
         //moveEnemy(blueEnemy, blueTargetTile, deltaT)
         //moveEnemy(pinkEnemy, pinkTargetTile, deltaT)
         //moveEnemy(orangeEnemy, orangeTargetTile, deltaT)
@@ -445,20 +451,22 @@ class World(resources: Resources): Scene {
                 moveEnemies(deltaT, attribs)
             }
             PlayerState.DYING -> {
-                player.x = getTileX(308).toFloat()
-                player.y = getTileY(308).toFloat()
+                player.x = 8*tileSize.toFloat()
+                player.y = 15*tileSize.toFloat()
 
-                redEnemy.x = getTileX(421).toFloat()
-                redEnemy.y = getTileY(421).toFloat()
+                redEnemy.x = 4*tileSize.toFloat()
+                redEnemy.y = 21*tileSize.toFloat()
 
-                blueEnemy.x = getTileX(423).toFloat()
-                blueEnemy.y = getTileY(423).toFloat()
+                blueEnemy.x = 3*tileSize.toFloat()
+                blueEnemy.y = 21*tileSize.toFloat()
 
-                orangeEnemy.x = getTileX(438).toFloat()
-                orangeEnemy.y = getTileY(438).toFloat()
+                orangeEnemy.x = 18*tileSize.toFloat()
+                orangeEnemy.y = 21*tileSize.toFloat()
+                orangeEnemy.direction = Direction.LEFT
 
-                pinkEnemy.x = getTileX(436).toFloat()
-                pinkEnemy.y = getTileY(436).toFloat()
+                pinkEnemy.x = 16*tileSize.toFloat()
+                pinkEnemy.y = 21*tileSize.toFloat()
+                pinkEnemy.direction = Direction.LEFT
 
                 player.state = PlayerState.ALIVE
             }
@@ -469,98 +477,97 @@ class World(resources: Resources): Scene {
     }
 
     override fun render(canvas: Canvas) {
-        for(i in tilemap.indices) {
-            val x = i%mapWidth * tileSize
-            val y = i/mapWidth * tileSize
+        for(y in tilemap.indices) {
+            for(x in tilemap[y].indices) {
+                when (tilemap[y][x]) {
+                    1 -> {
+                        straightWall?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
 
-            when (tilemap[i]) {
-                1 -> {
-                    straightWall?.setBounds(x, y, x+tileSize, y+tileSize)
+                        canvas.save()
+                        canvas.rotate(90f, x*tileSize + tileSize / 2f, y*tileSize + tileSize / 2f)
+                        straightWall?.draw(canvas)
+                        canvas.restore()
+                    }
+                    2 -> {
+                        straightWall?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
 
-                    canvas.save()
-                    canvas.rotate(90f, x+tileSize/2f, y+tileSize/2f)
-                    straightWall?.draw(canvas)
-                    canvas.restore()
-                }
-                2 -> {
-                    straightWall?.setBounds(x, y, x+tileSize, y+tileSize)
+                        canvas.save()
+                        canvas.rotate(270f, x*tileSize + tileSize / 2f, y*tileSize + tileSize / 2f)
+                        straightWall?.draw(canvas)
+                        canvas.restore()
+                    }
+                    3 -> {
+                        straightWall?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        straightWall?.draw(canvas)
+                    }
+                    4 -> {
+                        straightWall?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
 
-                    canvas.save()
-                    canvas.rotate(270f, x+tileSize/2f, y+tileSize/2f)
-                    straightWall?.draw(canvas)
-                    canvas.restore()
-                }
-                3 -> {
-                    straightWall?.setBounds(x, y, x+tileSize, y+tileSize)
-                    straightWall?.draw(canvas)
-                }
-                4 -> {
-                    straightWall?.setBounds(x, y, x+tileSize, y+tileSize)
-
-                    canvas.save()
-                    canvas.rotate(180f, x+tileSize/2f, y+tileSize/2f)
-                    straightWall?.draw(canvas)
-                    canvas.restore()
-                }
-                5 -> {
-                    topLeftCorner?.setBounds(x, y, x+tileSize, y+tileSize)
-                    topLeftCorner?.draw(canvas)
-                }
-                6 -> {
-                    topRightCorner?.setBounds(x, y, x+tileSize, y+tileSize)
-                    topRightCorner?.draw(canvas)
-                }
-                7 -> {
-                    bottomLeftCorner?.setBounds(x, y, x+tileSize, y+tileSize)
-                    bottomLeftCorner?.draw(canvas)
-                }
-                8 -> {
-                    bottomRightCorner?.setBounds(x, y, x+tileSize, y+tileSize)
-                    bottomRightCorner?.draw(canvas)
-                }
-                9 -> {
-                    islandTopLeft?.setBounds(x, y, x+tileSize, y+tileSize)
-                    islandTopLeft?.draw(canvas)
-                }
-                10 -> {
-                    islandTopRight?.setBounds(x, y, x+tileSize, y+tileSize)
-                    islandTopRight?.draw(canvas)
-                }
-                11 -> {
-                    islandBottomLeft?.setBounds(x, y, x+tileSize, y+tileSize)
-                    islandBottomLeft?.draw(canvas)
-                }
-                12 -> {
-                    islandBottomRight?.setBounds(x, y, x+tileSize, y+tileSize)
-                    islandBottomRight?.draw(canvas)
-                }
-                13 -> {
-                    islandInnerTopLeft?.setBounds(x, y, x+tileSize, y+tileSize)
-                    islandInnerTopLeft?.draw(canvas)
-                }
-                14 -> {
-                    islandInnerTopRight?.setBounds(x, y, x+tileSize, y+tileSize)
-                    islandInnerTopRight?.draw(canvas)
-                }
-                15 -> {
-                    islandInnerBottomLeft?.setBounds(x, y, x+tileSize, y+tileSize)
-                    islandInnerBottomLeft?.draw(canvas)
-                }
-                16 -> {
-                    islandInnerBottomRight?.setBounds(x, y, x+tileSize, y+tileSize)
-                    islandInnerBottomRight?.draw(canvas)
-                }
-                17 -> {
-                    islandSolid?.setBounds(x, y, x+tileSize, y+tileSize)
-                    islandSolid?.draw(canvas)
-                }
-                18 -> {
-                    ball?.setBounds(x, y, x+tileSize, y+tileSize)
-                    ball?.draw(canvas)
-                }
-                19 -> {
-                    powerBall?.setBounds(x, y, x+tileSize, y+tileSize)
-                    powerBall?.draw(canvas)
+                        canvas.save()
+                        canvas.rotate(180f, x*tileSize + tileSize / 2f, y*tileSize + tileSize / 2f)
+                        straightWall?.draw(canvas)
+                        canvas.restore()
+                    }
+                    5 -> {
+                        topLeftCorner?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        topLeftCorner?.draw(canvas)
+                    }
+                    6 -> {
+                        topRightCorner?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        topRightCorner?.draw(canvas)
+                    }
+                    7 -> {
+                        bottomLeftCorner?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        bottomLeftCorner?.draw(canvas)
+                    }
+                    8 -> {
+                        bottomRightCorner?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        bottomRightCorner?.draw(canvas)
+                    }
+                    9 -> {
+                        islandTopLeft?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        islandTopLeft?.draw(canvas)
+                    }
+                    10 -> {
+                        islandTopRight?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        islandTopRight?.draw(canvas)
+                    }
+                    11 -> {
+                        islandBottomLeft?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        islandBottomLeft?.draw(canvas)
+                    }
+                    12 -> {
+                        islandBottomRight?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        islandBottomRight?.draw(canvas)
+                    }
+                    13 -> {
+                        islandInnerTopLeft?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        islandInnerTopLeft?.draw(canvas)
+                    }
+                    14 -> {
+                        islandInnerTopRight?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        islandInnerTopRight?.draw(canvas)
+                    }
+                    15 -> {
+                        islandInnerBottomLeft?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        islandInnerBottomLeft?.draw(canvas)
+                    }
+                    16 -> {
+                        islandInnerBottomRight?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        islandInnerBottomRight?.draw(canvas)
+                    }
+                    17 -> {
+                        islandSolid?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        islandSolid?.draw(canvas)
+                    }
+                    18 -> {
+                        ball?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        ball?.draw(canvas)
+                    }
+                    19 -> {
+                        powerBall?.setBounds(x*tileSize, y*tileSize, x*tileSize + tileSize, y*tileSize + tileSize)
+                        powerBall?.draw(canvas)
+                    }
                 }
             }
         }
