@@ -27,6 +27,11 @@ class World(resources: Resources): Scene {
     private var scatterTimer = 7f
     private var frightenedTimer = 0f
 
+    private var chaseCount = 0
+    private var scatterCount = 0
+
+    private var indefiniteChase = false
+
     private val straightWall = ResourcesCompat.getDrawable(resources, R.drawable.straight_wall, null)
     private val topLeftCorner = ResourcesCompat.getDrawable(resources, R.drawable.top_left_corner, null)
     private val topRightCorner = ResourcesCompat.getDrawable(resources, R.drawable.top_right_corner, null)
@@ -61,10 +66,10 @@ class World(resources: Resources): Scene {
         intArrayOf(3, 18,  4,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  3, 18,  4),
         intArrayOf(3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4),
         intArrayOf(3, 18,  4,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  3, 18,  4),
-        intArrayOf(3, 18, 11, 12, 18,  4,  3,  0, 11,  1,  1, 12,  0,  4,  3, 18, 11, 12, 18,  4),
-        intArrayOf(3, 18, 18, 18, 18,  4,  3,  0,  0,  0,  0,  0,  0,  4,  3, 18, 18, 18, 18,  4),
-        intArrayOf(7,  2,  2, 10, 18,  4, 15,  2,  2,  2,  2,  2,  2, 16,  3, 18,  9,  2,  2,  8),
-        intArrayOf(0,  0,  0,  3, 18,  4, 13,  1,  1,  1,  1,  1,  1, 14,  3, 18,  4,  0,  0,  0),
+        intArrayOf(3, 18, 11, 12, 18, 11, 12,  0, 11,  1,  1, 12,  0, 11, 12, 18, 11, 12, 18,  4),
+        intArrayOf(3, 18, 18, 18, 18,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 18, 18, 18, 18,  4),
+        intArrayOf(7,  2,  2, 10, 18,  9, 10,  0,  9,  2,  2, 10,  0,  9, 10, 18,  9,  2,  2,  8),
+        intArrayOf(0,  0,  0,  3, 18,  4,  3,  0, 11,  1,  1, 12,  0,  4,  3, 18,  4,  0,  0,  0),
         intArrayOf(0,  0,  0,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  0,  0,  0),
         intArrayOf(0,  0,  0,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  0,  0,  0),
         intArrayOf(1,  1,  1, 12, 18, 11, 12, 18,  4, 17, 17,  3, 18, 11, 12, 18, 11,  1,  1,  1), // Center
@@ -72,10 +77,10 @@ class World(resources: Resources): Scene {
         intArrayOf(2,  2,  2, 10, 18,  9, 10, 18,  4, 17, 17,  3, 18,  9, 10, 18,  9,  2,  2,  2),
         intArrayOf(0,  0,  0,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  0,  0,  0),
         intArrayOf(0,  0,  0,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  0,  0,  0),
-        intArrayOf(0,  0,  0,  3, 18,  4, 15,  2,  2,  2,  2,  2,  2, 16,  3, 18,  4,  0,  0,  0),
-        intArrayOf(5,  1,  1, 12, 18,  4, 13,  1,  1,  1,  1,  1,  1, 14,  3, 18, 11,  1,  1,  6),
-        intArrayOf(3, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18,  4),
-        intArrayOf(3, 18,  9, 10, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  9, 10, 18,  4),
+        intArrayOf(0,  0,  0,  3, 18,  4,  3,  0,  9,  2,  2, 10,  0,  4,  3, 18,  4,  0,  0,  0),
+        intArrayOf(5,  1,  1, 12, 18, 11, 12,  0, 11,  1,  1, 12,  0, 11, 12, 18, 11,  1,  1,  6),
+        intArrayOf(3, 18, 18, 18, 18,  0,  0, 18, 18, 18, 18, 18, 18,  0,  0, 18, 18, 18, 18,  4),
+        intArrayOf(3, 18,  9, 10, 18,  9, 10, 18,  9,  2,  2, 10, 18,  9, 10, 18,  9, 10, 18,  4),
         intArrayOf(3, 18,  4,  3, 18,  4,  3, 18, 11,  1,  1, 12, 18,  4,  3, 18,  4,  3, 18,  4),
         intArrayOf(3, 18,  4,  3, 18,  4,  3, 18, 18, 18, 18, 18, 18,  4,  3, 18,  4,  3, 18,  4),
         intArrayOf(3, 18,  4,  3, 18,  4,  3, 18,  9,  2,  2, 10, 18,  4,  3, 18,  4,  3, 18,  4),
@@ -101,15 +106,78 @@ class World(resources: Resources): Scene {
     }
 
     private fun resetChaseTimer() {
+        indefiniteChase = false
+        when (level) {
+            1 -> {
+                if(chaseCount in 0..2) {
+                    chaseTimer = 20f
+                }
+                else {
+                    chaseTimer = 1033f
+                    indefiniteChase = true
+                }
+            }
+            in 2..4 -> {
+                when (chaseCount) {
+                    in 0..1 -> {
+                        chaseTimer = 20f
+                    }
+                    2 -> {
+                        chaseTimer = 1033f
+                    }
+                    else -> {
+                        chaseTimer = 1033f
+                        indefiniteChase = true
+                    }
+                }
+
+            }
+            else -> {
+                chaseTimer = when(chaseCount) {
+                    in 0 ..1 -> 20f
+                    2 -> 1037f
+                    else -> -1f
+                }
+            }
+        }
         chaseTimer = 20f
     }
 
     private fun resetScatterTimer() {
-        scatterTimer = 7f
+        when(level) {
+            1 -> {
+                scatterTimer = if(scatterCount in 0..1)
+                    7f
+                else
+                    5f
+            }
+            in 2..4 -> {
+                scatterTimer = if(scatterCount in 0 .. 1)
+                    7f
+                else if(scatterCount == 2)
+                    5f
+                else
+                    1/60f
+            }
+            else -> {
+                scatterTimer = if(scatterCount > 2)
+                    1/60f
+                else
+                    5f
+            }
+        }
     }
 
     private fun resetFrightenedTimer() {
-        frightenedTimer = 10f
+        frightenedTimer = when(level) {
+            0 -> 6f
+            1,5,9 -> 5f
+            2 -> 4f
+            3,13 -> 3f
+            4,6,7,10 -> 2f
+            8,11,12,14,15,17 -> 1f
+            else -> 0f
+        }
     }
 
     private fun resetMaze() {
@@ -128,6 +196,7 @@ class World(resources: Resources): Scene {
         redEnemy.nextTileY = 21
         redEnemy.movingToTile = true
         redEnemy.direction = Direction.RIGHT
+        redEnemy.state = EnemyState.SCATTER
 
         blueEnemy.x = 2*tileSize.toFloat()
         blueEnemy.tileX = 2
@@ -137,6 +206,7 @@ class World(resources: Resources): Scene {
         blueEnemy.nextTileY = 21
         blueEnemy.movingToTile = true
         blueEnemy.direction = Direction.RIGHT
+        blueEnemy.state = EnemyState.SCATTER
 
         orangeEnemy.x = 18*tileSize.toFloat()
         orangeEnemy.tileX = 18
@@ -146,6 +216,7 @@ class World(resources: Resources): Scene {
         orangeEnemy.nextTileY = 21
         orangeEnemy.movingToTile = true
         orangeEnemy.direction = Direction.LEFT
+        orangeEnemy.state = EnemyState.SCATTER
 
         pinkEnemy.x = 16*tileSize.toFloat()
         pinkEnemy.tileX = 16
@@ -155,6 +226,40 @@ class World(resources: Resources): Scene {
         pinkEnemy.nextTileY = 21
         pinkEnemy.movingToTile = true
         pinkEnemy.direction = Direction.LEFT
+        pinkEnemy.state = EnemyState.SCATTER
+
+        resetScatterTimer()
+        resetChaseTimer()
+
+        chaseCount = 0
+        scatterCount = 0
+
+        when (level) {
+            1 -> {
+                redEnemy.speed = 250f
+                blueEnemy.speed = 250f
+                pinkEnemy.speed = 250f
+                orangeEnemy.speed = 250f
+            }
+            in 2 .. 4 -> {
+                redEnemy.speed = 300f
+                blueEnemy.speed = 300f
+                pinkEnemy.speed = 300f
+                orangeEnemy.speed = 300f
+            }
+            in 5 .. 20 -> {
+                redEnemy.speed = 330f
+                blueEnemy.speed = 330f
+                pinkEnemy.speed = 330f
+                orangeEnemy.speed = 330f
+            }
+            else -> {
+                redEnemy.speed = 350f
+                blueEnemy.speed = 350f
+                pinkEnemy.speed = 350f
+                orangeEnemy.speed = 350f
+            }
+        }
     }
 
     private fun movePlayer(deltaT: Float, attribs: GameAttributes) {
@@ -554,6 +659,7 @@ class World(resources: Resources): Scene {
                 orangeEnemy.state = EnemyState.PURSUIT
 
                 resetChaseTimer()
+                scatterCount++
             }
         } else if(chaseTimer > 0) {
             chaseTimer -= deltaT
@@ -564,6 +670,7 @@ class World(resources: Resources): Scene {
                 orangeEnemy.state = EnemyState.SCATTER
 
                 resetScatterTimer()
+                chaseCount++
             }
         }
 
@@ -702,12 +809,12 @@ class World(resources: Resources): Scene {
                     orangeTargetX = playerX
                     orangeTargetY = playerY
                 } else {
-                    orangeTargetX = 0
+                    orangeTargetX = mapWidth
                     orangeTargetY = tilemap.size
                 }
             }// move towards player
             EnemyState.SCATTER -> {
-                orangeTargetX = 0
+                orangeTargetX = mapWidth
                 orangeTargetY = tilemap.size
             }// move towards bottom left corner
             EnemyState.FRIGHTENED -> {

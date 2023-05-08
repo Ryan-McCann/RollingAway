@@ -24,10 +24,10 @@ class Enemy(var radius: Float, resources: Resources, @DrawableRes id: Int) {
 
     var movingToTile = false
 
-    var speed = 150f
+    var speed = 350f
     var direction = Direction.RIGHT
 
-    var state = EnemyState.PURSUIT
+    var state = EnemyState.SCATTER
 
     private var enemyImg: Bitmap
 
