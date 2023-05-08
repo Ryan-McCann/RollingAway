@@ -3,7 +3,6 @@ package app.ryanm.rollingaway
 import android.content.Context
 import android.content.Context.SENSOR_SERVICE
 import android.graphics.Color
-import android.graphics.Paint
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener

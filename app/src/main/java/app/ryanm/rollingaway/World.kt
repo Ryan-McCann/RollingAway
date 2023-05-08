@@ -4,10 +4,9 @@ import android.content.res.Resources
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.util.Log
 import androidx.core.content.res.ResourcesCompat
 import kotlin.math.abs
-import kotlin.math.round
+import kotlin.math.sqrt
 
 class World(resources: Resources): Scene {
     private val mapWidth = 20
@@ -17,11 +16,16 @@ class World(resources: Resources): Scene {
     private val textPaint = Paint()
 
     private val player = Player(tileSize.toFloat())
+    private var level: Int = 1
 
     private val redEnemy = Enemy(tileSize.toFloat(), resources, R.drawable.red_enemy)
     private val blueEnemy = Enemy(tileSize.toFloat(), resources, R.drawable.blue_enemy)
     private val orangeEnemy = Enemy(tileSize.toFloat(), resources, R.drawable.orange_enemy)
     private val pinkEnemy = Enemy(tileSize.toFloat(), resources, R.drawable.pink_enemy)
+
+    private var chaseTimer = 20f
+    private var scatterTimer = 7f
+    private var frightenedTimer = 0f
 
     private val straightWall = ResourcesCompat.getDrawable(resources, R.drawable.straight_wall, null)
     private val topLeftCorner = ResourcesCompat.getDrawable(resources, R.drawable.top_left_corner, null)
@@ -40,7 +44,9 @@ class World(resources: Resources): Scene {
     private val ball = ResourcesCompat.getDrawable(resources, R.drawable.ball, null)
     private val powerBall = ResourcesCompat.getDrawable(resources, R.drawable.power_ball, null)
 
-    private val initmap = arrayOf(
+    private var tilemap: Array<IntArray> = arrayOf()
+
+    private val initmap: Array<IntArray> = arrayOf(
         intArrayOf(5,  1,  1,  1,  1,  1,  1,  1,  1, 14, 13,  1,  1,  1,  1,  1,  1,  1,  1,  6),
         intArrayOf(3, 19, 18, 18, 18, 18, 18, 18, 18,  4,  3, 18, 18, 18, 18, 18, 18, 18, 19,  4),
         intArrayOf(3, 18,  9,  2,  2,  2,  2, 10, 18,  4,  3, 18,  9,  2,  2,  2,  2, 10, 18,  4),
@@ -86,28 +92,69 @@ class World(resources: Resources): Scene {
         intArrayOf(7,  2,  2,  2,  2,  2,  2,  2,  2, 16, 15,  2,  2,  2,  2,  2,  2,  2,  2,  8),
     )
 
-    private val tilemap: Array<IntArray> = initmap.clone()
-
     init{
-        player.x = 8*tileSize.toFloat()
-        player.y = 15*tileSize.toFloat()
-
-        redEnemy.x = 4*tileSize.toFloat()
-        redEnemy.y = 21*tileSize.toFloat()
-
-        blueEnemy.x = 3*tileSize.toFloat()
-        blueEnemy.y = 21*tileSize.toFloat()
-
-        orangeEnemy.x = 18*tileSize.toFloat()
-        orangeEnemy.y = 21*tileSize.toFloat()
-        orangeEnemy.direction = Direction.LEFT
-
-        pinkEnemy.x = 16*tileSize.toFloat()
-        pinkEnemy.y = 21*tileSize.toFloat()
-        pinkEnemy.direction = Direction.LEFT
+        resetMaze()
+        resetCharacters()
 
         textPaint.color = Color.WHITE
         textPaint.textSize = 36f
+    }
+
+    private fun resetChaseTimer() {
+        chaseTimer = 20f
+    }
+
+    private fun resetScatterTimer() {
+        scatterTimer = 7f
+    }
+
+    private fun resetFrightenedTimer() {
+        frightenedTimer = 10f
+    }
+
+    private fun resetMaze() {
+        tilemap = initmap.map { it.clone() }.toTypedArray()
+        player.pellets = 0
+    }
+    private fun resetCharacters() {
+        player.x = 8*tileSize.toFloat()
+        player.y = 15*tileSize.toFloat()
+
+        redEnemy.x = 3*tileSize.toFloat()
+        redEnemy.tileX = 3
+        redEnemy.nextTileX = 4
+        redEnemy.y = 21*tileSize.toFloat()
+        redEnemy.tileY = 21
+        redEnemy.nextTileY = 21
+        redEnemy.movingToTile = true
+        redEnemy.direction = Direction.RIGHT
+
+        blueEnemy.x = 2*tileSize.toFloat()
+        blueEnemy.tileX = 2
+        blueEnemy.nextTileX = 3
+        blueEnemy.y = 21*tileSize.toFloat()
+        blueEnemy.tileY = 21
+        blueEnemy.nextTileY = 21
+        blueEnemy.movingToTile = true
+        blueEnemy.direction = Direction.RIGHT
+
+        orangeEnemy.x = 18*tileSize.toFloat()
+        orangeEnemy.tileX = 18
+        orangeEnemy.nextTileX = 17
+        orangeEnemy.y = 21*tileSize.toFloat()
+        orangeEnemy.tileY = 21
+        orangeEnemy.nextTileY = 21
+        orangeEnemy.movingToTile = true
+        orangeEnemy.direction = Direction.LEFT
+
+        pinkEnemy.x = 16*tileSize.toFloat()
+        pinkEnemy.tileX = 16
+        pinkEnemy.nextTileX = 16
+        pinkEnemy.y = 21*tileSize.toFloat()
+        pinkEnemy.tileY = 21
+        pinkEnemy.nextTileY = 21
+        pinkEnemy.movingToTile = true
+        pinkEnemy.direction = Direction.LEFT
     }
 
     private fun movePlayer(deltaT: Float, attribs: GameAttributes) {
@@ -115,6 +162,7 @@ class World(resources: Resources): Scene {
          * Start of code to update player's movement based on which tile the player is currently on
          * as well as which direction the user's phone is tilted.
          */
+
         val deltaX = -attribs.xRot * player.speed * deltaT
         val deltaY =  attribs.yRot * player.speed * deltaT
 
@@ -235,12 +283,27 @@ class World(resources: Resources): Scene {
          */
         if(tilemap[tileY][tileX] == 18) {
             player.pellets += 1 // track how many pellets player has picked up
-            player.score += 200 // add 200 points for each pellet
+            player.score += 10 // add 200 points for each pellet
             tilemap[tileY][tileX] = 0
-        } else if(tilemap[tileY][tileX] == 19) {
+        } else if(tilemap[tileY][tileX] == 19) { // If power pellet picked up
             player.pellets += 1 // track how many pellets player has picked up
-            player.score += 2000 // add 2000 points for power pellets
+            player.score += 50 // add 2000 points for power pellets
             tilemap[tileY][tileX] = 0
+
+            // Set enemies to frightened state
+            redEnemy.state = EnemyState.FRIGHTENED
+            blueEnemy.state = EnemyState.FRIGHTENED
+            pinkEnemy.state = EnemyState.FRIGHTENED
+            orangeEnemy.state = EnemyState.FRIGHTENED
+
+            // Reset frightenedTimer
+            resetFrightenedTimer()
+        }
+
+        if(player.pellets >= 280) {
+            level += 1
+            resetMaze()
+            resetCharacters()
         }
 
         player.rect.left = player.x - player.radius
@@ -250,85 +313,143 @@ class World(resources: Resources): Scene {
     }
 
     private fun moveEnemy(enemy: Enemy, targetX: Int, targetY: Int, deltaT: Float) {
-        enemy.x = round(enemy.x)
-        enemy.y = round(enemy.y)
+        val delta = enemy.speed * deltaT
 
-        val tileX: Int = enemy.x.toInt() * tileSize
-        val tileY: Int = enemy.y.toInt() * tileSize
-
-        var changeDir = false
-
-        if(enemy.direction == Direction.RIGHT) {
-            if (enemy.x + enemy.speed * deltaT >= tileX*tileSize) {
-                changeDir = true
-            }
-            else {
-                enemy.x += enemy.speed * deltaT
-            }
-        }
-
-        if(enemy.direction == Direction.LEFT) {
-            if(enemy.x - enemy.speed * deltaT > tileX*tileSize)
-                enemy.x -= enemy.speed * deltaT
-            else {
-                changeDir = true
-            }
-        }
-        if(enemy.direction == Direction.UP) {
-            if (enemy.y - enemy.speed * deltaT > tileY*tileSize)
-                enemy.y -= enemy.speed * deltaT
-            else {
-                changeDir = true
-            }
-        }
-        if(enemy.direction == Direction.DOWN) {
-            if (enemy.y + enemy.speed * deltaT > tileY*tileSize)
-                changeDir = true
-            else {
-                enemy.y += enemy.speed * deltaT
-            }
-        }
-
-        if(changeDir) {
-            Log.i("Change Dir:", "True")
-            val directions = getAvailableEnemyDirections(enemy.x.toInt(), enemy.y.toInt(), enemy.direction)
-
-            if(directions.isNotEmpty()) {
-                enemy.direction = directions[0]
-
-                when(enemy.direction) {
-                    Direction.UP -> Log.i("Current:", "Up")
-                    Direction.DOWN -> Log.i("Current:", "Down")
-                    Direction.LEFT -> Log.i("Current:", "Left")
-                    Direction.RIGHT -> Log.i("Current:", "Right")
+        if(enemy.movingToTile) {
+            when(enemy.direction) {
+                Direction.UP -> {
+                    if(enemy.y > enemy.nextTileY * tileSize)
+                        enemy.y -= delta
+                    else {
+                        enemy.movingToTile = false
+                        enemy.y = enemy.nextTileY * tileSize.toFloat()
+                        enemy.tileY = enemy.nextTileY
+                    }
                 }
-
-                when(enemy.direction) {
-                    Direction.UP -> {
-                        enemy.y -= enemy.speed * deltaT
+                Direction.DOWN -> {
+                    if(enemy.y < enemy.nextTileY * tileSize) {
+                        enemy.y += delta
+                    } else {
+                        enemy.movingToTile = false
+                        enemy.y = enemy.nextTileY * tileSize.toFloat()
+                        enemy.tileY = enemy.nextTileY
                     }
-                    Direction.DOWN -> {
-                        enemy.y += enemy.speed * deltaT
+                }
+                Direction.LEFT -> {
+                    if(enemy.x > enemy.nextTileX * tileSize)
+                        enemy.x -= delta
+                    else {
+                        enemy.movingToTile = false
+                        enemy.x = enemy.nextTileX * tileSize.toFloat()
+                        enemy.tileX = enemy.nextTileX
                     }
-                    Direction.LEFT -> {
-                        enemy.x -= enemy.speed * deltaT
-                    }
-                    Direction.RIGHT -> {
-                        enemy.x += enemy.speed * deltaT
+                }
+                Direction.RIGHT -> {
+                    if(enemy.x < enemy.nextTileX * tileSize) {
+                        enemy.x += delta
+                    } else {
+                        enemy.movingToTile = false
+                        enemy.x = enemy.nextTileX * tileSize.toFloat()
+                        enemy.tileX = enemy.nextTileX
                     }
                 }
             }
-            else
-                Log.i("Directions:", "Is empty")
         }
 
-        if(enemy.x > (mapWidth-1)*tileSize.toFloat()) {
+        if(enemy.x > (mapWidth-1)*tileSize) {
             enemy.x = 0f
-            enemy.y = (mapHeight/2)*tileSize.toFloat()
+            enemy.tileX = 0
+            enemy.nextTileX = 1
         }
         else if(enemy.x < 0) {
-            enemy.x = (mapWidth-1)*tileSize.toFloat()
-            enemy.y = ((mapHeight/2)*tileSize).toFloat()
+            enemy.x = (mapWidth - 1) * tileSize.toFloat()
+            enemy.tileX = mapWidth-1
+            enemy.nextTileX = mapWidth-2
+        }
+
+        if(enemy.y > (tilemap.size-1)*tileSize)
+            enemy.y = 0f
+        else if(enemy.y < 0)
+            enemy.y = (tilemap.size-1)*tileSize.toFloat()
+
+        if(!enemy.movingToTile) {
+            val directions = getAvailableEnemyDirections(enemy.tileX, enemy.tileY, enemy.direction)
+
+            if(directions.size == 1) { // Only one direction available
+                enemy.direction = directions[0]
+            }
+            else { // multiple directions available, choose best direction based on target
+                var distance = 1000
+
+                for(direction in directions) {
+                    when(direction) {
+                        Direction.UP -> {
+                            val tempDist = getTileDistance(enemy.tileX, enemy.tileY-1, targetX, targetY)
+                            if(tempDist <= distance) {
+                                distance = tempDist
+                                enemy.direction = direction
+                            }
+                        }
+                        Direction.DOWN -> {
+                            val tempDist = getTileDistance(enemy.tileX, enemy.tileY+1, targetX, targetY)
+                            if(tempDist < distance) {
+                                distance = tempDist
+                                enemy.direction = direction
+                            } else if(tempDist == distance) {
+                                if(enemy.direction == Direction.RIGHT)
+                                    enemy.direction = direction
+                            }
+                        }
+                        Direction.LEFT -> {
+                            val tempDist = getTileDistance(enemy.tileX-1, enemy.tileY, targetX, targetY)
+                            if(tempDist < distance) {
+                                distance = tempDist
+                                enemy.direction = direction
+                            } else if(tempDist == distance) {
+                                if(enemy.direction == Direction.RIGHT || enemy.direction == Direction.DOWN) {
+                                    enemy.direction = direction
+                                }
+                            }
+                        }
+                        Direction.RIGHT -> {
+                            val tempDist = getTileDistance(enemy.tileX+1, enemy.tileY, targetX, targetY)
+                            if(tempDist < distance) {
+                                distance = tempDist
+                                enemy.direction = direction
+                            }
+                        }
+                    }
+                }
+            }
+
+            when(enemy.direction) {
+                Direction.UP -> {
+                    if(enemy.tileY - 1 < 0)
+                        enemy.nextTileY = tilemap.size - 1
+                    else
+                        enemy.nextTileY = enemy.tileY - 1
+                }
+                Direction.DOWN -> {
+                    if(enemy.tileY + 1 >= tilemap.size)
+                        enemy.nextTileY = 0
+                    else
+                        enemy.nextTileY = enemy.tileY + 1
+                }
+                Direction.LEFT -> {
+                    if(enemy.tileX - 1 < 0)
+                        enemy.nextTileX = mapWidth - 1
+                    else
+                        enemy.nextTileX = enemy.tileX - 1
+                }
+                Direction.RIGHT -> {
+                    if(enemy.tileX + 1 >= mapWidth)
+                        enemy.nextTileX = 0
+                    else
+                        enemy.nextTileX = enemy.tileX + 1
+                }
+            }
+
+            enemy.movingToTile = true
         }
 
         // Collision rects
@@ -338,48 +459,113 @@ class World(resources: Resources): Scene {
         enemy.rect.bottom = enemy.rect.top + 2*enemy.radius
     }
 
-    private fun getAvailableEnemyDirections(x: Int, y: Int, direction: Direction): ArrayList<Direction> {
-        val tileX = x / tileSize
-        val tileY = y / tileSize
+    private fun getTileDistance(tile1X: Int, tile1Y: Int, tile2X: Int, tile2Y: Int): Int {
+        val x = (tile2X - tile1X).toFloat()
+        val y = (tile2Y - tile1Y).toFloat()
+
+        return sqrt(x*x + y*y).toInt()
+    }
+
+    private fun getAvailableEnemyDirections(tileX: Int, tileY: Int, direction: Direction): ArrayList<Direction> {
         val directionList = ArrayList<Direction>()
 
-        if(tileX-1 <= 0) {
-            if(direction != Direction.RIGHT)
-                directionList.add(Direction.LEFT)
-        }
+        val upTileY = tileY - 1
 
-        if(tileX-1 > 0) {
-            if(tilemap[tileY][tileX-1] == 0 || tilemap[tileY][tileX-1] == 18 || tilemap[tileX][tileY-1] == 19)
-                if(direction != Direction.RIGHT)
-                    directionList.add(Direction.LEFT)
-        }
+        val leftTileX = tileX - 1
 
-        if(tileX+1 < mapWidth)
-            if(tilemap[tileY][tileX+1] == 0 || tilemap[tileY][tileX+1] == 18 || tilemap[tileY][tileX+1] == 19)
-                if(direction != Direction.LEFT)
-                    directionList.add(Direction.RIGHT)
+        val downTileY = tileY + 1
 
-        if(tileX+1 >= mapWidth)
-            if(direction != Direction.LEFT)
-                directionList.add(Direction.RIGHT)
+        val rightTileX = tileX + 1
 
-        if(tileY-1 > 0)
-            if(tilemap[tileY-1][tileX] == 0 || tilemap[tileY-1][tileX] == 18 || tilemap[tileY-1][tileX] == 19)
-                if(direction != Direction.DOWN)
+        if(upTileY >= 0)
+            if(direction != Direction.DOWN)
+                if(tilemap[upTileY][tileX] == 0 || tilemap[upTileY][tileX] == 18 || tilemap[upTileY][tileX] == 19)
                     directionList.add(Direction.UP)
 
-        if(tileY+1 < tilemap.size)
-            if(tilemap[tileY+1][tileX] == 0 || tilemap[tileY+1][tileX] == 18 || tilemap[tileY+1][tileX] == 19)
-                if(direction != Direction.UP)
+        if(leftTileX >= 0) {
+            if (direction != Direction.RIGHT)
+                if (tilemap[tileY][leftTileX] == 0 || tilemap[tileY][leftTileX] == 18 || tilemap[tileY][leftTileX] == 19)
+                    directionList.add(Direction.LEFT)
+        } else
+            if(direction != Direction.RIGHT)
+                directionList.add(Direction.LEFT)
+
+        if (downTileY < tilemap.size)
+            if (direction != Direction.UP)
+                if (tilemap[downTileY][tileX] == 0 || tilemap[downTileY][tileX] == 18 || tilemap[downTileY][tileX] == 19)
                     directionList.add(Direction.DOWN)
+
+        if(rightTileX < mapWidth) {
+            if (direction != Direction.LEFT)
+                if (tilemap[tileY][rightTileX] == 0 || tilemap[tileY][rightTileX] == 18 || tilemap[tileY][rightTileX] == 19)
+                    directionList.add(Direction.RIGHT)
+        } else
+            if(direction != Direction.LEFT)
+                directionList.add(Direction.RIGHT)
 
         return directionList
     }
 
-    private fun moveEnemies(deltaT: Float, attribs: GameAttributes) {
+    private fun checkCollision(enemy: Enemy): Boolean {
+        if(abs(player.x - enemy.x) < tileSize*2)
+            if(abs(player.y - enemy.y) < tileSize*2)
+                return player.rect.intersects(enemy.rect.left, enemy.rect.top, enemy.rect.right, enemy.rect.bottom)
+
+        return false
+    }
+
+    private fun handleCollision(enemy: Enemy) {
+        if(checkCollision(enemy)) {
+            if(enemy.state != EnemyState.FRIGHTENED) {
+                player.lives--
+
+                player.state = PlayerState.DYING
+
+                if (player.lives <= 0) {
+                    player.state = PlayerState.GAMEOVER
+                }
+            } else {
+                player.score += 400
+            }
+        }
+    }
+
+    private fun moveEnemies(deltaT: Float) {
         /**
          * Code handling behavior of enemies
          */
+
+        if(frightenedTimer > 0) {
+            frightenedTimer -= deltaT
+            if(frightenedTimer <= 0) {
+                redEnemy.state = EnemyState.SCATTER
+                blueEnemy.state = EnemyState.SCATTER
+                pinkEnemy.state = EnemyState.SCATTER
+                orangeEnemy.state = EnemyState.SCATTER
+
+                resetScatterTimer()
+            }
+        } else if(scatterTimer > 0) {
+            scatterTimer -= deltaT
+            if(scatterTimer <= 0) {
+                redEnemy.state = EnemyState.PURSUIT
+                blueEnemy.state = EnemyState.PURSUIT
+                pinkEnemy.state = EnemyState.PURSUIT
+                orangeEnemy.state = EnemyState.PURSUIT
+
+                resetChaseTimer()
+            }
+        } else if(chaseTimer > 0) {
+            chaseTimer -= deltaT
+            if(chaseTimer <= 0) {
+                redEnemy.state = EnemyState.SCATTER
+                blueEnemy.state = EnemyState.SCATTER
+                pinkEnemy.state = EnemyState.SCATTER
+                orangeEnemy.state = EnemyState.SCATTER
+
+                resetScatterTimer()
+            }
+        }
 
         val redTargetX: Int; val redTargetY: Int
         when(redEnemy.state) {
@@ -400,12 +586,53 @@ class World(resources: Resources): Scene {
         val blueTargetX: Int; val blueTargetY: Int
         when(blueEnemy.state) { // move towards player
             EnemyState.PURSUIT -> {
-                blueTargetX = player.x.toInt()/tileSize
-                blueTargetY = player.y.toInt()/tileSize
+                val redX: Int
+                val redY: Int
+                val playerX: Int
+                val playerY: Int
+                when(player.direction) {
+                    Direction.UP -> {
+                        playerX = player.x.toInt()/tileSize
+                        playerY = player.y.toInt()/tileSize - 2
+                    }
+                    Direction.DOWN -> {
+                        playerX = player.x.toInt()/tileSize
+                        playerY = player.y.toInt()/tileSize + 2
+                    }
+                    Direction.LEFT -> {
+                        playerX = player.x.toInt()/tileSize - 2
+                        playerY = player.y.toInt()/tileSize
+                    }
+                    Direction.RIGHT -> {
+                        playerX = player.x.toInt()/tileSize + 2
+                        playerY = player.y.toInt()/tileSize
+                    }
+                }
+
+                redX = playerX - redEnemy.tileX
+                redY = playerY - redEnemy.tileY
+
+                blueTargetX = if(redX+playerX in 0 until mapWidth)
+                    redX + playerX
+                else if(redX+playerX < 0)
+                    0
+                else if(redX+playerX >= mapWidth)
+                    mapWidth - 1
+                else
+                    0
+
+                blueTargetY = if(redY+playerY in tilemap.indices)
+                    redY + playerY
+                else if(redY+playerY < 0)
+                    0
+                else if(redY+playerY >= tilemap.size)
+                    tilemap.size - 1
+                else 0
+
             }
-            EnemyState.SCATTER -> { // move towards top right corner
-                blueTargetY = 0
+            EnemyState.SCATTER -> { // move towards bottom right corner
                 blueTargetX = mapWidth
+                blueTargetY = tilemap.size
             }
             EnemyState.FRIGHTENED -> { // move in random directions
                 blueTargetX = (0 until mapWidth).random()
@@ -413,61 +640,101 @@ class World(resources: Resources): Scene {
             }
         }
 
-        val pinkTargetX: Int; val pinkTargetY: Int = when(pinkEnemy.state) {
-            EnemyState.PURSUIT -> { player.x.toInt()/tileSize; player.y.toInt()/tileSize }// move towards player
-            EnemyState.SCATTER -> { 0; mapWidth }// move towards top right corner
-            EnemyState.FRIGHTENED -> { (0 until mapWidth).random(); (tilemap.indices).random() } // move in random directions
+        val pinkTargetX: Int; val pinkTargetY: Int
+        when(pinkEnemy.state) {
+            EnemyState.PURSUIT -> { // move towards player
+                when(player.direction) {
+                    Direction.UP -> {
+                        pinkTargetX = player.x.toInt() / tileSize
+                        val playerTileY = player.y.toInt() / tileSize
+
+                        pinkTargetY = if(playerTileY - 4 > 0)
+                            playerTileY - 4
+                        else
+                            0
+                    }
+                    Direction.DOWN -> {
+                        pinkTargetX = player.x.toInt() / tileSize
+                        val playerTileY = player.y.toInt() / tileSize
+
+                        pinkTargetY = if(playerTileY + 4 < tilemap.size)
+                            playerTileY + 4
+                        else
+                            tilemap.size-1
+                    }
+                    Direction.LEFT -> {
+                        val playerTileX = player.x.toInt() / tileSize
+                        pinkTargetY = player.y.toInt() / tileSize
+
+                        pinkTargetX = if(playerTileX - 4 > 0)
+                            playerTileX - 4
+                        else
+                            0
+                    }
+                    Direction.RIGHT -> {
+                        val playerTileX = player.x.toInt() / tileSize
+                        pinkTargetY = player.y.toInt() / tileSize
+
+                        pinkTargetX = if(playerTileX + 4 < mapWidth)
+                            playerTileX + 2
+                        else
+                            mapWidth-1
+                    }
+                }
+            }
+            EnemyState.SCATTER -> { // move towards top left corner
+                pinkTargetX = 0
+                pinkTargetY = 0
+            }
+            EnemyState.FRIGHTENED -> { // move in random directions
+                pinkTargetX = (0 until mapWidth).random()
+                pinkTargetY = (tilemap.indices).random()
+            }
         }
 
-        val orangeTargetX: Int; val orangeTargetY: Int = when(orangeEnemy.state) {
-            EnemyState.PURSUIT -> { player.x.toInt()/tileSize; player.y.toInt()/tileSize }// move towards player
-            EnemyState.SCATTER -> { 0; mapWidth }// move towards top right corner
-            EnemyState.FRIGHTENED -> { (0 until mapWidth).random(); (tilemap.indices).random() } // move in random directions
+        val orangeTargetX: Int; val orangeTargetY: Int
+        when(orangeEnemy.state) {
+            EnemyState.PURSUIT -> {
+                val playerX = player.x.toInt()/tileSize
+                val playerY = player.y.toInt()/tileSize
+
+                if(sqrt((playerX-orangeEnemy.tileX)*(playerX-orangeEnemy.tileX).toFloat()+(playerY-orangeEnemy.tileY)*(playerY-orangeEnemy.tileY)) >= 8) {
+                    orangeTargetX = playerX
+                    orangeTargetY = playerY
+                } else {
+                    orangeTargetX = 0
+                    orangeTargetY = tilemap.size
+                }
+            }// move towards player
+            EnemyState.SCATTER -> {
+                orangeTargetX = 0
+                orangeTargetY = tilemap.size
+            }// move towards bottom left corner
+            EnemyState.FRIGHTENED -> {
+                orangeTargetX = (0 until mapWidth).random()
+                orangeTargetY = (tilemap.indices).random()
+            } // move in random directions
         }
 
         moveEnemy(redEnemy, redTargetX, redTargetY, deltaT)
-        //moveEnemy(blueEnemy, blueTargetTile, deltaT)
-        //moveEnemy(pinkEnemy, pinkTargetTile, deltaT)
-        //moveEnemy(orangeEnemy, orangeTargetTile, deltaT)
+        moveEnemy(blueEnemy, blueTargetX, blueTargetY, deltaT)
+        moveEnemy(pinkEnemy, pinkTargetX, pinkTargetY, deltaT)
+        moveEnemy(orangeEnemy, orangeTargetX, orangeTargetY, deltaT)
 
-        if(player.rect.intersects(redEnemy.rect.left, redEnemy.rect.top, redEnemy.rect.right, redEnemy.rect.bottom) ||
-            player.rect.intersects(blueEnemy.rect.left, blueEnemy.rect.top, blueEnemy.rect.right, blueEnemy.rect.bottom) ||
-            player.rect.intersects(pinkEnemy.rect.left, pinkEnemy.rect.top, pinkEnemy.rect.right, pinkEnemy.rect.bottom) ||
-            player.rect.intersects(orangeEnemy.rect.left, orangeEnemy.rect.top, orangeEnemy.rect.right, orangeEnemy.rect.bottom)) {
-            player.lives--
-
-            player.state = PlayerState.DYING
-
-            if(player.lives < 0) {
-                player.state = PlayerState.GAMEOVER
-            }
-        }
+        handleCollision(redEnemy)
+        handleCollision(orangeEnemy)
+        handleCollision(pinkEnemy)
+        handleCollision(blueEnemy)
     }
 
     override fun update(deltaT: Float, attribs: GameAttributes) {
         when(player.state) {
             PlayerState.ALIVE -> {
                 movePlayer(deltaT, attribs)
-                moveEnemies(deltaT, attribs)
+                moveEnemies(deltaT)
             }
             PlayerState.DYING -> {
-                player.x = 8*tileSize.toFloat()
-                player.y = 15*tileSize.toFloat()
-
-                redEnemy.x = 4*tileSize.toFloat()
-                redEnemy.y = 21*tileSize.toFloat()
-
-                blueEnemy.x = 3*tileSize.toFloat()
-                blueEnemy.y = 21*tileSize.toFloat()
-
-                orangeEnemy.x = 18*tileSize.toFloat()
-                orangeEnemy.y = 21*tileSize.toFloat()
-                orangeEnemy.direction = Direction.LEFT
-
-                pinkEnemy.x = 16*tileSize.toFloat()
-                pinkEnemy.y = 21*tileSize.toFloat()
-                pinkEnemy.direction = Direction.LEFT
-
+                resetCharacters()
                 player.state = PlayerState.ALIVE
             }
             PlayerState.GAMEOVER -> {
@@ -580,8 +847,8 @@ class World(resources: Resources): Scene {
         pinkEnemy.render(canvas)
 
         canvas.drawText("Score: "+player.score, 0f, mapHeight*tileSize + 36f, textPaint)
-
-        canvas.drawText("X: "+redEnemy.x+" Y: "+redEnemy.y,
-            300F, mapHeight*tileSize + 36f, textPaint)
+        canvas.drawText("Lives: "+player.lives, mapWidth.toFloat()/2f*tileSize, mapHeight*tileSize+36f, textPaint)
+        canvas.drawText("Level: $level", mapWidth.toFloat()*tileSize-100, mapHeight*tileSize+36f, textPaint)
+        canvas.drawText("Pellets: "+player.pellets, 0f, mapHeight*tileSize + 72f, textPaint)
     }
 }

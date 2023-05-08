@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.drawable.Drawable
 import androidx.annotation.DrawableRes
 import androidx.core.content.res.ResourcesCompat
 
@@ -17,7 +16,15 @@ class Enemy(var radius: Float, resources: Resources, @DrawableRes id: Int) {
     var x = 0.0f
     var y = 0.0f
 
-    var speed = 100f
+    var tileX: Int = 0
+    var tileY: Int = 0
+
+    var nextTileX: Int = 1
+    var nextTileY: Int = 0
+
+    var movingToTile = false
+
+    var speed = 150f
     var direction = Direction.RIGHT
 
     var state = EnemyState.PURSUIT
