@@ -4,5 +4,5 @@ import android.graphics.Canvas
 
 interface Scene {
     fun update(deltaT: Float, attribs: GameAttributes)
-    fun render(canvas: Canvas)
+    fun render(deltaT: Float, canvas: Canvas)
 }

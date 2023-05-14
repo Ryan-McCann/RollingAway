@@ -27,6 +27,8 @@ class World(resources: Resources): Scene {
     private var scatterTimer = 7f
     private var frightenedTimer = 0f
 
+    private var chompCount = 1
+
     private var chaseCount = 0
     private var scatterCount = 0
 
@@ -152,12 +154,11 @@ class World(resources: Resources): Scene {
                     5f
             }
             in 2..4 -> {
-                scatterTimer = if(scatterCount in 0 .. 1)
-                    7f
-                else if(scatterCount == 2)
-                    5f
-                else
-                    1/60f
+                scatterTimer = when (scatterCount) {
+                    in 0 .. 1 -> 7f
+                    2 -> 5f
+                    else -> 1/60f
+                }
             }
             else -> {
                 scatterTimer = if(scatterCount > 2)
@@ -178,6 +179,63 @@ class World(resources: Resources): Scene {
             8,11,12,14,15,17 -> 1f
             else -> 0f
         }
+    }
+
+    private fun changeEnemyDirs() {
+        redEnemy.direction = when(redEnemy.direction) {
+            Direction.UP -> Direction.DOWN
+            Direction.DOWN -> Direction.UP
+            Direction.LEFT -> Direction.RIGHT
+            Direction.RIGHT -> Direction.LEFT
+        }
+        blueEnemy.direction = when(blueEnemy.direction){
+            Direction.UP -> Direction.DOWN
+            Direction.DOWN -> Direction.UP
+            Direction.LEFT -> Direction.RIGHT
+            Direction.RIGHT -> Direction.LEFT
+        }
+        orangeEnemy.direction = when(orangeEnemy.direction){
+            Direction.UP -> Direction.DOWN
+            Direction.DOWN -> Direction.UP
+            Direction.LEFT -> Direction.RIGHT
+            Direction.RIGHT -> Direction.LEFT
+        }
+        pinkEnemy.direction = when(pinkEnemy.direction){
+            Direction.UP -> Direction.DOWN
+            Direction.DOWN -> Direction.UP
+            Direction.LEFT -> Direction.RIGHT
+            Direction.RIGHT -> Direction.LEFT
+        }
+    }
+
+    private fun startScatterMode() {
+        redEnemy.state = EnemyState.SCATTER
+        blueEnemy.state = EnemyState.SCATTER
+        pinkEnemy.state = EnemyState.SCATTER
+        orangeEnemy.state = EnemyState.SCATTER
+
+        changeEnemyDirs()
+        resetScatterTimer()
+    }
+
+    private fun startChaseMode() {
+        redEnemy.state = EnemyState.PURSUIT
+        blueEnemy.state = EnemyState.PURSUIT
+        pinkEnemy.state = EnemyState.PURSUIT
+        orangeEnemy.state = EnemyState.PURSUIT
+
+        changeEnemyDirs()
+        resetChaseTimer()
+    }
+
+    private fun startFrightenedMode() {
+        redEnemy.state = EnemyState.FRIGHTENED
+        blueEnemy.state = EnemyState.FRIGHTENED
+        pinkEnemy.state = EnemyState.FRIGHTENED
+        orangeEnemy.state = EnemyState.FRIGHTENED
+
+        changeEnemyDirs()
+        resetFrightenedTimer()
     }
 
     private fun resetMaze() {
@@ -228,11 +286,10 @@ class World(resources: Resources): Scene {
         pinkEnemy.direction = Direction.LEFT
         pinkEnemy.state = EnemyState.SCATTER
 
-        resetScatterTimer()
-        resetChaseTimer()
-
         chaseCount = 0
         scatterCount = 0
+
+        startScatterMode()
 
         when (level) {
             1 -> {
@@ -396,13 +453,7 @@ class World(resources: Resources): Scene {
             tilemap[tileY][tileX] = 0
 
             // Set enemies to frightened state
-            redEnemy.state = EnemyState.FRIGHTENED
-            blueEnemy.state = EnemyState.FRIGHTENED
-            pinkEnemy.state = EnemyState.FRIGHTENED
-            orangeEnemy.state = EnemyState.FRIGHTENED
-
-            // Reset frightenedTimer
-            resetFrightenedTimer()
+            startFrightenedMode()
         }
 
         if(player.pellets >= 280) {
@@ -621,7 +672,7 @@ class World(resources: Resources): Scene {
 
     private fun handleCollision(enemy: Enemy) {
         if(checkCollision(enemy)) {
-            if(enemy.state != EnemyState.FRIGHTENED) {
+            if(enemy.state != EnemyState.FRIGHTENED && enemy.state != EnemyState.CHOMPED) {
                 player.lives--
 
                 player.state = PlayerState.DYING
@@ -629,8 +680,14 @@ class World(resources: Resources): Scene {
                 if (player.lives <= 0) {
                     player.state = PlayerState.GAMEOVER
                 }
-            } else {
-                player.score += 400
+            } else if(enemy.state == EnemyState.FRIGHTENED) {
+                enemy.state = EnemyState.CHOMPED
+                player.score += 400 * chompCount
+
+                if(chompCount < 4)
+                    chompCount++
+                else
+                    chompCount = 1
             }
         }
     }
@@ -640,7 +697,10 @@ class World(resources: Resources): Scene {
          * Code handling behavior of enemies
          */
 
-        if(frightenedTimer > 0) {
+        if(frightenedTimer > 0 && (redEnemy.state == EnemyState.FRIGHTENED ||
+                                   blueEnemy.state == EnemyState.FRIGHTENED ||
+                                   pinkEnemy.state == EnemyState.FRIGHTENED ||
+                                   orangeEnemy.state == EnemyState.FRIGHTENED)) {
             frightenedTimer -= deltaT
             if(frightenedTimer <= 0) {
                 redEnemy.state = EnemyState.SCATTER
@@ -648,29 +708,19 @@ class World(resources: Resources): Scene {
                 pinkEnemy.state = EnemyState.SCATTER
                 orangeEnemy.state = EnemyState.SCATTER
 
-                resetScatterTimer()
+                startScatterMode()
             }
         } else if(scatterTimer > 0) {
             scatterTimer -= deltaT
             if(scatterTimer <= 0) {
-                redEnemy.state = EnemyState.PURSUIT
-                blueEnemy.state = EnemyState.PURSUIT
-                pinkEnemy.state = EnemyState.PURSUIT
-                orangeEnemy.state = EnemyState.PURSUIT
-
-                resetChaseTimer()
                 scatterCount++
+                startChaseMode()
             }
-        } else if(chaseTimer > 0) {
+        } else if(chaseTimer > 0 || indefiniteChase) {
             chaseTimer -= deltaT
-            if(chaseTimer <= 0) {
-                redEnemy.state = EnemyState.SCATTER
-                blueEnemy.state = EnemyState.SCATTER
-                pinkEnemy.state = EnemyState.SCATTER
-                orangeEnemy.state = EnemyState.SCATTER
-
-                resetScatterTimer()
+            if(chaseTimer <= 0 && !indefiniteChase) {
                 chaseCount++
+                startScatterMode()
             }
         }
 
@@ -687,6 +737,10 @@ class World(resources: Resources): Scene {
             EnemyState.FRIGHTENED -> {  // move in random directions
                 redTargetX = (0 until mapWidth).random()
                 redTargetY = (tilemap.indices).random()
+            }
+            EnemyState.CHOMPED -> {
+                redTargetX = 3
+                redTargetY = 21
             }
         }
 
@@ -745,6 +799,10 @@ class World(resources: Resources): Scene {
                 blueTargetX = (0 until mapWidth).random()
                 blueTargetY = (tilemap.indices).random()
             }
+            EnemyState.CHOMPED -> {
+                blueTargetX = 2
+                blueTargetY = 21
+            }
         }
 
         val pinkTargetX: Int; val pinkTargetY: Int
@@ -797,6 +855,10 @@ class World(resources: Resources): Scene {
                 pinkTargetX = (0 until mapWidth).random()
                 pinkTargetY = (tilemap.indices).random()
             }
+            EnemyState.CHOMPED -> {
+                pinkTargetX = 16
+                pinkTargetY = 21
+            }
         }
 
         val orangeTargetX: Int; val orangeTargetY: Int
@@ -821,6 +883,10 @@ class World(resources: Resources): Scene {
                 orangeTargetX = (0 until mapWidth).random()
                 orangeTargetY = (tilemap.indices).random()
             } // move in random directions
+            EnemyState.CHOMPED -> {
+                orangeTargetX = 18
+                orangeTargetY = 21
+            }
         }
 
         moveEnemy(redEnemy, redTargetX, redTargetY, deltaT)
@@ -850,7 +916,7 @@ class World(resources: Resources): Scene {
         }
     }
 
-    override fun render(canvas: Canvas) {
+    override fun render(deltaT: Float, canvas: Canvas) {
         for(y in tilemap.indices) {
             for(x in tilemap[y].indices) {
                 when (tilemap[y][x]) {
@@ -948,10 +1014,10 @@ class World(resources: Resources): Scene {
 
         player.render(canvas)
 
-        redEnemy.render(canvas)
-        orangeEnemy.render(canvas)
-        blueEnemy.render(canvas)
-        pinkEnemy.render(canvas)
+        redEnemy.render(deltaT, canvas)
+        orangeEnemy.render(deltaT, canvas)
+        blueEnemy.render(deltaT, canvas)
+        pinkEnemy.render(deltaT, canvas)
 
         canvas.drawText("Score: "+player.score, 0f, mapHeight*tileSize + 36f, textPaint)
         canvas.drawText("Lives: "+player.lives, mapWidth.toFloat()/2f*tileSize, mapHeight*tileSize+36f, textPaint)

@@ -48,7 +48,7 @@ class Game(context: Context): SurfaceView(context), Runnable, SensorEventListene
                 val canvas = holder.lockCanvas()
                 if(canvas != null) {
                     canvas.drawColor(Color.BLACK)
-                    scene.render(canvas)
+                    scene.render(deltaT, canvas)
 
                     holder.unlockCanvasAndPost(canvas)
                 }
