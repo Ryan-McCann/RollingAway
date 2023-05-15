@@ -325,8 +325,8 @@ class World(resources: Resources): Scene {
          * as well as which direction the user's phone is tilted.
          */
 
-        val deltaX = -attribs.xRot * player.speed * deltaT
-        val deltaY =  attribs.yRot * player.speed * deltaT
+        val deltaX = -attribs.xRot/abs(attribs.xRot) * player.speed * deltaT
+        val deltaY =  attribs.yRot/abs(attribs.yRot) * player.speed * deltaT
 
         var leftBlocked = true
         var rightBlocked = true
@@ -382,7 +382,7 @@ class World(resources: Resources): Scene {
                 rightBlocked = true
         }
 
-        if(abs(deltaX) > abs(deltaY)) { // If tilted more in x direction than y direction
+        if(abs(attribs.xRot) > abs(attribs.yRot)) { // If tilted more in x direction than y direction
             if((!leftBlocked && deltaX < 0) || (!rightBlocked && deltaX > 0)) {// If player can move left or right
                 player.x += deltaX
 
