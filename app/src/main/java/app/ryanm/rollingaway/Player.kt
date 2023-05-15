@@ -8,7 +8,7 @@ enum class PlayerState {
 class Player(var radius: Float) {
     var x = 500f
     var y = 500f
-    var speed = 100f
+    var speed = 350f
 
     var score: Int = 0
     var pellets: Int = 0
